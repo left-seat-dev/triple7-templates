@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eval + MT Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F1EA;
+    --card: #FFFFFF;
+    --text: #1A1A1A;
+    --text-muted: #5C5C5C;
+    --border: #DDD6CA;
+    --accent: #002B5C;
+    --accent-soft: #E8EEF5;
+    --success: #1B5E20;
+    --warn: #B45309;
+    --grade-1: #B91C1C;
+    --grade-2: #C2410C;
+    --grade-3: #B45309;
+    --grade-4: #15803D;
+    --grade-5: #1E40AF;
+    --root-cause: #B45309;
+    --card-2: #EFEAE0;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  [data-theme="dark"] {
+    --bg: #14171C;
+    --card: #1E232B;
+    --card-2: #252B34;
+    --text: #E8E6E1;
+    --text-muted: #9BA3AD;
+    --border: #2E353F;
+    --accent: #5B8FD6;
+    --accent-soft: #233244;
+    --success: #4ADE80;
+    --warn: #FBBF24;
+    --grade-1: #F87171;
+    --grade-2: #FB923C;
+    --grade-3: #FBBF24;
+    --grade-4: #4ADE80;
+    --grade-5: #60A5FA;
+    --root-cause: #FB923C;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 2.5rem 1.25rem 4rem;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--text);
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    left: 0;
+    width: 32px;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .session-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: 2px;
+    cursor: text;
+    outline: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    min-width: 4rem;
+  }
+
+  .session-meta:hover, .session-meta:focus {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .session-meta-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .session-meta-edit-hint {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    letter-spacing: 0.1em;
+  }
+
+  .session-meta-wrap:hover .session-meta-edit-hint {
+    opacity: 0.7;
+  }
+
+  .session-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    font-variation-settings: 'opsz' 96;
+  }
+
+  .session-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-weight: 400;
+  }
+
+  /* Pilot identifier */
+  .pilot-banner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0.8rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pilot-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 48;
+    cursor: text;
+    outline: none;
+    padding: 0.1rem 0.3rem;
+    margin-left: -0.3rem;
+    border-radius: 2px;
+    transition: background 0.15s ease;
+  }
+
+  .pilot-name:hover, .pilot-name:focus {
+    background: var(--accent-soft);
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .progress {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .progress-count {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .reset-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .reset-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .primary-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.55rem 1.1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .primary-btn:hover { background: #001D40; }
+  .primary-btn.copied { background: var(--success); }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* Section dividers */
+  .section-header {
+    margin: 2.5rem 0 1.25rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--text);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  .section-header::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 48px;
+    height: 4px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 48;
+    text-transform: uppercase;
+  }
+
+  .section-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* MT Status Selector */
+  .mt-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .mt-status-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .status-options {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .status-btn {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .status-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .status-btn.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  .status-btn.active.oawap {
+    background: var(--warn);
+    border-color: var(--warn);
+  }
+
+  .status-btn.active.ona {
+    background: var(--grade-1);
+    border-color: var(--grade-1);
+  }
+
+  /* Competency toggle buttons (MT only) */
+  .competency-toggles {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    padding: 0.6rem 0.65rem;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+  }
+
+  .comp-btn {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 2.4rem;
+    text-align: center;
+  }
+
+  .comp-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .comp-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Field card */
+  .field-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .field-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .field-card.copied {
+    border-color: var(--success);
+    background: linear-gradient(to right, rgba(27, 94, 32, 0.03), var(--card) 30%);
+  }
+
+  .field-card.root-cause-marked {
+    border-color: var(--root-cause);
+    background: linear-gradient(to right, rgba(180, 83, 9, 0.04), var(--card) 40%);
+  }
+
+  .field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.85rem 0.55rem 0.5rem;
+    background: linear-gradient(to bottom, #FAFAF7, #FFFFFF);
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .field-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.55rem;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 1.75rem;
+    text-align: center;
+  }
+
+  .field-code.overall {
+    background: var(--text);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .field-name {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .field-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Grade selector */
+  .grade-selector {
+    display: flex;
+    gap: 0.2rem;
+  }
+
+  .grade-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 1.7rem;
+    text-align: center;
+  }
+
+  .grade-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .grade-btn.active {
+    color: white;
+    border-color: transparent;
+  }
+
+  .grade-btn.active[data-grade="1"] { background: var(--grade-1); }
+  .grade-btn.active[data-grade="2"] { background: var(--grade-2); }
+  .grade-btn.active[data-grade="3"] { background: var(--grade-3); }
+  .grade-btn.active[data-grade="4"] { background: var(--grade-4); }
+  .grade-btn.active[data-grade="5"] { background: var(--grade-5); }
+
+  /* Root-cause checkbox */
+  .root-cause-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: transparent;
+    transition: all 0.15s ease;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .root-cause-toggle:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .root-cause-toggle.active {
+    background: var(--root-cause);
+    color: white;
+    border-color: var(--root-cause);
+  }
+
+  .root-cause-toggle .indicator {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+    display: inline-block;
+    position: relative;
+  }
+
+  .root-cause-toggle.active .indicator::after {
+    content: '\2713';
+    position: absolute;
+    inset: -0.2rem 0 0 0.05rem;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: white;
+  }
+
+  .root-cause-toggle.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border) !important;
+  }
+
+  .root-cause-toggle.disabled:hover {
+    border-color: var(--border) !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* Copy button */
+  .copy-btn {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+
+  .copy-btn:hover { background: #001D40; }
+  .copy-btn.copied { background: var(--success); }
+  .copy-btn.copied:hover { background: #154A1A; }
+
+  .field-textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: vertical;
+    padding: 0.95rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--card);
+    min-height: 70px;
+    display: block;
+  }
+
+  .field-textarea:focus { background: #FFFDF7; }
+
+  /* Grade guidance hint */
+  .grade-guidance {
+    padding: 0.4rem 1rem;
+    background: var(--accent-soft);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+
+  .grade-guidance.g1, .grade-guidance.g2 {
+    background: rgba(185, 28, 28, 0.07);
+    color: var(--grade-1);
+  }
+
+  .grade-guidance.g3, .grade-guidance.g5 {
+    background: rgba(180, 83, 9, 0.07);
+    color: var(--grade-3);
+  }
+
+  .grade-guidance.g4 {
+    background: rgba(21, 128, 61, 0.06);
+    color: var(--grade-4);
+  }
+
+  .field-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    background: #FAFAF7;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .status-tag.pending { color: var(--text-muted); }
+  .status-tag.done { color: var(--success); }
+
+  /* Done section */
+  .done-section {
+    margin-top: 2.5rem;
+    padding: 1.75rem 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .done-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+  }
+
+  .done-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .done-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .done-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--text);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .done-btn:hover { background: var(--accent); }
+  .done-btn.saved { background: var(--success); }
+
+  .footer-note {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .footer-note strong { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 600px) {
+    body { padding: 1.5rem 0.75rem 3rem; }
+    .field-name { font-size: 0.75rem; }
+    .field-header { padding: 0.5rem; }
+    .copy-btn { min-width: 75px; padding: 0.35rem 0.5rem; font-size: 0.6rem; }
+    .grade-btn { min-width: 1.4rem; font-size: 0.65rem; }
+  }
+  /* Top icon bar */
+  .top-bar { display:flex; justify-content:flex-end; gap:0.4rem; margin-bottom:1rem; }
+  .icon-btn { font-family:var(--font-mono); font-size:0.8rem; font-weight:600; min-width:2.2rem; height:2.2rem; padding:0 0.6rem; background:var(--card); color:var(--text-muted); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.15s ease; }
+  .icon-btn:hover { color:var(--text); border-color:var(--text-muted); }
+  .icon-btn.danger:hover { color:var(--grade-1); border-color:var(--grade-1); }
+
+  /* OB overlay */
+  .ob-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:none; padding:1rem; }
+  .ob-overlay.open { display:flex; align-items:flex-start; justify-content:center; }
+  .ob-panel { background:var(--card); border:1px solid var(--border); border-radius:12px; width:100%; max-width:680px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; margin-top:2vh; }
+  .ob-head { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1rem; border-bottom:1px solid var(--border); }
+  .ob-head h2 { font-family:var(--font-display); font-size:1.2rem; font-weight:600; }
+  .ob-close { font-size:1rem; background:transparent; border:1px solid var(--border); color:var(--text-muted); width:2rem; height:2rem; border-radius:6px; cursor:pointer; }
+  .ob-letters { display:flex; gap:0.3rem; flex-wrap:wrap; padding:0.7rem 1rem; border-bottom:1px solid var(--border); }
+  .ob-letter { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; min-width:2.3rem; padding:0.45rem 0; background:var(--card-2); color:var(--text-muted); border:1px solid var(--border); border-radius:6px; cursor:pointer; text-align:center; }
+  .ob-letter.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .ob-letter.all { min-width:3.2rem; letter-spacing:0.05em; }
+  .ob-content { padding:1rem; overflow-y:auto; }
+  .ob-comp { margin-bottom:1.4rem; }
+  .ob-comp-name { font-family:var(--font-display); font-size:1.05rem; font-weight:700; margin-bottom:0.25rem; }
+  .ob-code { font-family:var(--font-mono); font-size:0.8rem; font-weight:700; background:var(--accent); color:#fff; padding:0.1rem 0.45rem; border-radius:4px; margin-right:0.45rem; }
+  .ob-desc { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-bottom:0.6rem; line-height:1.5; }
+  .ob-list { list-style:none; display:flex; flex-direction:column; gap:0.45rem; }
+  .ob-list li { font-size:0.88rem; line-height:1.45; display:flex; gap:0.5rem; }
+  .ob-ref { font-family:var(--font-mono); font-size:0.7rem; font-weight:600; color:var(--accent); white-space:nowrap; padding-top:0.05rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-bar">
+    <button class="icon-btn" id="obBtn" title="Observable Behaviours reference">OB</button>
+    <button class="icon-btn" id="themeBtn" title="Light / dark">&#9680;</button>
+    <button class="icon-btn danger" id="clearFormBtn" title="Clear this form for reuse">&#10227; Clear</button>
+  </div>
+
+  <header class="header">
+    <div class="session-meta-wrap">
+      <div class="session-meta" id="sessionMeta" contenteditable="true" spellcheck="false">Session</div>
+      <span class="session-meta-edit-hint">&#9998; click to edit</span>
+    </div>
+    <h1 class="session-title">Eval + MT Report</h1>
+    <div class="session-subtitle">Single-pilot report. Eval = all 9 competencies graded. MT = selective + section status.</div>
+  </header>
+
+  <div class="pilot-banner">
+    <div class="pilot-name" id="pilotName" contenteditable="true" spellcheck="false">Captain</div>
+    <span class="section-meta" id="pilotMeta">Click name to edit</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="progress">
+        <span class="progress-count" id="copiedCount">0</span> of <span id="totalCount">0</span> fields copied to TMS
+      </div>
+      <button class="reset-btn" id="resetBtn">Reset progress</button>
+    </div>
+    <button class="primary-btn" id="copyAllBtn">Send to Claude for review</button>
+  </div>
+
+  <!-- ============ EVAL SECTION ============ -->
+  <div class="section-header">
+    <h2 class="section-title">Evaluation</h2>
+    <span class="section-meta">All 9 competencies + grades (1-5)</span>
+  </div>
+
+  <div id="evalContainer"></div>
+
+  <!-- ============ MT SECTION ============ -->
+  <div class="section-header">
+    <h2 class="section-title">Manoeuvre Training</h2>
+    <span class="section-meta">Selective competencies, ungraded</span>
+  </div>
+
+  <div class="mt-status-bar">
+    <span class="mt-status-label">MT Objectives Status:</span>
+    <div class="status-options">
+      <button class="status-btn" data-status="OA">Objectives Achieved</button>
+      <button class="status-btn oawap" data-status="OAWAP">OA With Additional Practice</button>
+      <button class="status-btn ona" data-status="ONA">Objectives Not Achieved</button>
+    </div>
+  </div>
+
+  <div class="competency-toggles" id="mtToggles"></div>
+  <div id="mtContainer"></div>
+
+  <div class="done-section">
+    <div class="done-title">Ready to submit?</div>
+    <div class="done-subtitle">Saves a date-stamped record including grades, MT status and root-cause flags.</div>
+    <button class="done-btn" id="doneBtn">Save Final Record</button>
+  </div>
+
+  <div class="footer-note">
+    <strong>Workflow:</strong><br>
+    1. <strong>Eval:</strong> all 9 competencies are mandatory. Pick a grade (1-5) per card - guidance hint appears (G4 = tight, G3/G5 = evidence, G2 = watertight). Even a one-liner is fine where nothing significant happened.<br>
+    2. <strong>MT:</strong> use toggle buttons to open the competencies relevant to MT (typically 2-4). Set the MT Objectives status (OA / OAWAP / ONA).<br>
+    3. <strong>Root-cause:</strong> if MT status = OAWAP or ONA, tick the root-cause box on the 1-2 competencies that drove it. Max 2; ideally 1. The artifact will warn if more than 2.<br>
+    4. Click <em>Send to Claude for review</em>, paste into chat for House Style Check.<br>
+    5. Copy each field into TMS. Eval = first page, MT = second page. Submit, then click <em>Save Final Record</em>.<br>
+    6. Open a separate copy of this file for the other pilot - completely isolated state, no edit bleed.<br>
+    <strong>Auto-sanitiser:</strong> illegal characters (em dashes, curly quotes, hidden Unicode, weird spaces) are corrected to plain keyboard characters live as you type or paste, and once more at every Copy click - what reaches TMS is always clean.<br>
+    <br>
+    <strong>TEMPLATE v1.1</strong> (17 Aug 2026) - auto-sanitiser build
+  </div>
+
+</div>
+
+<div class="ob-overlay" id="obOverlay">
+  <div class="ob-panel">
+    <div class="ob-head"><h2>Observable Behaviours</h2><button class="ob-close" id="obClose">&#10005;</button></div>
+    <div class="ob-letters" id="obLetters"></div>
+    <div class="ob-content" id="obContent"></div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // EVAL + MT REPORT TEMPLATE v1.1
+  // v1.1 (17 Aug 2026): auto-sanitiser added - keyboard-only
+  // characters enforced live on input/paste and at copy time.
+  // ============================================================
+  // SESSION CONFIG - update per session
+  // ============================================================
+  const SESSION = {
+    code: 'XXXX',
+    name: 'Eval + MT',
+    filename: 'XXXX_Eval_MT'
+  };
+
+  const COMPETENCIES = [
+    { code: 'k', label: 'K', name: 'Application of Knowledge' },
+    { code: 'h', label: 'H', name: 'Aircraft Flight Path Control, Manual Control' },
+    { code: 'a', label: 'A', name: 'Aircraft Flight Path Control, Automation' },
+    { code: 'p', label: 'P', name: 'Application of Procedures' },
+    { code: 'm', label: 'M', name: 'Workload Management' },
+    { code: 's', label: 'S', name: 'Situation Awareness and Management of Information' },
+    { code: 'd', label: 'D', name: 'Problem Solving and Decision Making' },
+    { code: 'c', label: 'C', name: 'Communication' },
+    { code: 'l', label: 'L', name: 'Leadership and Teamwork' }
+  ];
+
+  const GRADE_GUIDANCE = {
+    1: 'GRADE 1 - Critical deficiency. Watertight, defensible if management digs: unsafe performance, major intervention, fundamental issues. Evidence-led, no word cap.',
+    2: 'GRADE 2 - Not yet competent. Watertight: below standard, full evidence chain, reduced safety margins. Most write-up of any grade. Evidence-led, no word cap.',
+    3: 'GRADE 3 - Competent with development theme. Full cause-effect: what fell short, better technique missed, consequence, recovery. Same evidence weight as G5. Evidence-led, no word cap.',
+    4: 'GRADE 4 - The trough. Tightest block. No topline summary, lead straight with the observation. Simple (K/H/A/P) ~15-20 words. Scenario-carrying (S/D) ~30-35.',
+    5: 'GRADE 5 - Expert. Evidence of what stood out. More than G4, but lean: target ~45-50 words, 60 hard ceiling. Markers (expert, decisive, assured) OK here only.'
+  };
+
+  // ============================================================
+  // PILOT - single-pilot artifact. Open a separate copy of this file for the other pilot.
+  // ============================================================
+  const PILOT = null;  // filled by build_eval_mt.py
+
+  // ============================================================
+  // ENGINE
+  // ============================================================
+
+  // ---- AUTO-SANITISER (17 Aug 2026) --------------------------
+  // Keyboard-only characters (Style_Guide.md REF_007). Corrects
+  // illegal characters live as text is typed or pasted, and
+  // again at every copy point as a final guard before TMS paste.
+  // All patterns use escaped codepoints - no literal illegal
+  // characters exist anywhere in this file's report path.
+  const CHAR_MAP = [
+    [/[\u2012\u2013\u2014\u2015\u2212]/g, '-'],        // figure/en/em dash, horizontal bar, minus sign
+    [/[\u2018\u2019\u201A\u201B\u2032]/g, "'"],        // curly single quotes, prime
+    [/[\u201C\u201D\u201E\u201F\u2033]/g, '"'],        // curly double quotes, double prime
+    [/\u2026/g, '...'],                                  // ellipsis character
+    [/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' '],  // non-breaking, thin and exotic spaces
+    [/[\u200B-\u200F\u2060\uFEFF\u00AD]/g, ''],        // zero-width, joiners, BOM, soft hyphen, directional marks
+    [/\u00D7/g, 'x'],                                    // multiplication sign
+    [/[\u2022\u25CF\u25E6]/g, '-'],                     // bullet characters
+    [/[\u2190-\u2194\u27A1]/g, '-']                     // arrows
+  ];
+
+  function sanitizeText(str) {
+    let out = str || '';
+    CHAR_MAP.forEach(pair => { out = out.replace(pair[0], pair[1]); });
+    return out;
+  }
+
+  function attachSanitizer(textarea) {
+    textarea.addEventListener('input', () => {
+      const clean = sanitizeText(textarea.value);
+      if (clean !== textarea.value) {
+        const pos = sanitizeText(textarea.value.slice(0, textarea.selectionStart)).length;
+        textarea.value = clean;
+        textarea.setSelectionRange(pos, pos);
+      }
+    });
+  }
+  // ------------------------------------------------------------
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  function getSessionMeta() {
+    const el = document.getElementById('sessionMeta');
+    const text = el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    return sanitizeText(text) || `${SESSION.code} / ${SESSION.name}`;
+  }
+
+  function getPilotLabel() {
+    const el = document.getElementById('pilotName');
+    return el ? sanitizeText((el.textContent || '').trim()) : PILOT.label;
+  }
+
+  function getSessionFilename() {
+    const meta = getSessionMeta();
+    const pilot = getPilotLabel();
+    const safe = (s) => s
+      .replace(/\s*\/\s*/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_-]/g, '')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
+    return `${safe(meta)}_${safe(pilot)}` || SESSION.filename;
+  }
+
+  // Render an Eval card (no toggle - mandatory)
+  function buildEvalCard(c) {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.id = `eval-card-${c.code}`;
+    card.innerHTML = `
+      <div class="field-header">
+        <div class="field-label">
+          <span class="field-code">${c.label}</span>
+          <span class="field-name">${escapeHtml(c.name)}</span>
+        </div>
+        <div class="field-controls">
+          <div class="grade-selector" data-comp="${c.code}">
+            ${[1,2,3,4,5].map(g => `<button class="grade-btn" data-grade="${g}">${g}</button>`).join('')}
+          </div>
+          <button class="copy-btn" data-target="eval-${c.code}">Copy</button>
+        </div>
+      </div>
+      <textarea class="field-textarea" id="eval-${c.code}"></textarea>
+      <div class="grade-guidance" id="eval-guidance-${c.code}" hidden></div>
+      <div class="field-footer">
+        <span class="char-count">0 chars</span>
+        <span class="status-tag pending">Pending</span>
+      </div>
+    `;
+    return card;
+  }
+
+  // Render an Eval Overall Comments card
+  function buildEvalOcCard() {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.id = `eval-card-oc`;
+    card.innerHTML = `
+      <div class="field-header">
+        <div class="field-label">
+          <span class="field-code overall">OC</span>
+          <span class="field-name">Eval Overall Comments</span>
+        </div>
+        <div class="field-controls">
+          <button class="copy-btn" data-target="eval-oc">Copy</button>
+        </div>
+      </div>
+      <textarea class="field-textarea" id="eval-oc"></textarea>
+      <div class="field-footer">
+        <span class="char-count">0 chars</span>
+        <span class="status-tag pending">Pending</span>
+      </div>
+    `;
+    return card;
+  }
+
+  // Render an MT card (toggleable, root-cause checkbox)
+  function buildMtCard(c, isActive) {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.id = `mt-card-${c.code}`;
+    if (!isActive) card.setAttribute('hidden', '');
+    card.innerHTML = `
+      <div class="field-header">
+        <div class="field-label">
+          <span class="field-code">${c.label}</span>
+          <span class="field-name">${escapeHtml(c.name)}</span>
+        </div>
+        <div class="field-controls">
+          <button class="root-cause-toggle" data-comp="${c.code}" title="Tick if this is a root cause for OAWAP or ONA">
+            <span class="indicator"></span>
+            <span>Root cause</span>
+          </button>
+          <button class="copy-btn" data-target="mt-${c.code}">Copy</button>
+        </div>
+      </div>
+      <textarea class="field-textarea" id="mt-${c.code}"></textarea>
+      <div class="field-footer">
+        <span class="char-count">0 chars</span>
+        <span class="status-tag pending">Pending</span>
+      </div>
+    `;
+    return card;
+  }
+
+  // Render an MT Overall Comments card
+  function buildMtOcCard() {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.id = `mt-card-oc`;
+    card.innerHTML = `
+      <div class="field-header">
+        <div class="field-label">
+          <span class="field-code overall">OC</span>
+          <span class="field-name">MT Overall Comments</span>
+        </div>
+        <div class="field-controls">
+          <button class="copy-btn" data-target="mt-oc">Copy</button>
+        </div>
+      </div>
+      <textarea class="field-textarea" id="mt-oc"></textarea>
+      <div class="field-footer">
+        <span class="char-count">0 chars</span>
+        <span class="status-tag pending">Pending</span>
+      </div>
+    `;
+    return card;
+  }
+
+  function renderEval() {
+    const container = document.getElementById('evalContainer');
+    container.innerHTML = '';
+    COMPETENCIES.forEach(c => container.appendChild(buildEvalCard(c)));
+    container.appendChild(buildEvalOcCard());
+  }
+
+  function renderMtToggles() {
+    const wrap = document.getElementById('mtToggles');
+    wrap.innerHTML = COMPETENCIES.map(c => {
+      const isActive = PILOT.mt.active.includes(c.code);
+      return `<button class="comp-btn${isActive ? ' active' : ''}" data-comp="${c.code}" title="${c.label} - ${c.name}">${c.label}</button>`;
+    }).join('');
+  }
+
+  function renderMt() {
+    const container = document.getElementById('mtContainer');
+    container.innerHTML = '';
+    COMPETENCIES.forEach(c => {
+      const isActive = PILOT.mt.active.includes(c.code);
+      container.appendChild(buildMtCard(c, isActive));
+    });
+    container.appendChild(buildMtOcCard());
+  }
+
+  function populateContent() {
+    COMPETENCIES.forEach(c => {
+      const evalTa = document.getElementById(`eval-${c.code}`);
+      if (evalTa) evalTa.value = sanitizeText(PILOT.eval[c.code].text || '');
+      const mtTa = document.getElementById(`mt-${c.code}`);
+      if (mtTa) mtTa.value = sanitizeText(PILOT.mt.content[c.code].text || '');
+      if (PILOT.eval[c.code].grade) {
+        applyGrade(c.code, PILOT.eval[c.code].grade);
+      }
+      if (PILOT.mt.content[c.code].rootCause) {
+        applyRootCause(c.code, true);
+      }
+    });
+    const evalOc = document.getElementById('eval-oc');
+    if (evalOc) evalOc.value = sanitizeText(PILOT.eval.oc || '');
+    const mtOc = document.getElementById('mt-oc');
+    if (mtOc) mtOc.value = sanitizeText(PILOT.mt.oc || '');
+    if (PILOT.mt.status) applyMtStatus(PILOT.mt.status);
+  }
+
+  function applyGrade(compCode, grade) {
+    const selector = document.querySelector(`.grade-selector[data-comp="${compCode}"]`);
+    if (!selector) return;
+    selector.querySelectorAll('.grade-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.grade) === grade);
+    });
+    const guidance = document.getElementById(`eval-guidance-${compCode}`);
+    if (guidance) {
+      guidance.textContent = GRADE_GUIDANCE[grade];
+      guidance.className = `grade-guidance g${grade}`;
+      guidance.removeAttribute('hidden');
+    }
+  }
+
+  function clearGrade(compCode) {
+    const selector = document.querySelector(`.grade-selector[data-comp="${compCode}"]`);
+    if (!selector) return;
+    selector.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('active'));
+    const guidance = document.getElementById(`eval-guidance-${compCode}`);
+    if (guidance) {
+      guidance.textContent = '';
+      guidance.className = 'grade-guidance';
+      guidance.setAttribute('hidden', '');
+    }
+  }
+
+  function getGrade(compCode) {
+    const active = document.querySelector(`.grade-selector[data-comp="${compCode}"] .grade-btn.active`);
+    return active ? parseInt(active.dataset.grade) : null;
+  }
+
+  function setupGradeSelectors() {
+    document.querySelectorAll('.grade-selector').forEach(selector => {
+      const compCode = selector.dataset.comp;
+      selector.querySelectorAll('.grade-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const grade = parseInt(btn.dataset.grade);
+          if (btn.classList.contains('active')) {
+            clearGrade(compCode);
+          } else {
+            applyGrade(compCode, grade);
+          }
+          const ta = document.getElementById(`eval-${compCode}`);
+          if (ta) updateCount(ta);
+        });
+      });
+    });
+  }
+
+  function applyRootCause(compCode, active) {
+    const btn = document.querySelector(`.root-cause-toggle[data-comp="${compCode}"]`);
+    if (!btn) return;
+    btn.classList.toggle('active', active);
+    const card = document.getElementById(`mt-card-${compCode}`);
+    if (card) card.classList.toggle('root-cause-marked', active);
+  }
+
+  function countRootCauses() {
+    return document.querySelectorAll('.root-cause-toggle.active').length;
+  }
+
+  function setupRootCauseToggles() {
+    document.querySelectorAll('.root-cause-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('disabled')) return;
+        const compCode = btn.dataset.comp;
+        const willBeActive = !btn.classList.contains('active');
+        if (willBeActive && countRootCauses() >= 2) {
+          alert('Maximum 2 root-cause flags allowed.\n\nUn-tick one of the existing flags first, then mark this one.\n\n(Reminder: ideally only 1 root cause is marked.)');
+          return;
+        }
+        applyRootCause(compCode, willBeActive);
+      });
+    });
+  }
+
+  function applyMtStatus(status) {
+    document.querySelectorAll('.status-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.status === status);
+    });
+  }
+
+  function getMtStatus() {
+    const active = document.querySelector('.status-btn.active');
+    return active ? active.dataset.status : null;
+  }
+
+  function setupMtStatusButtons() {
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const status = btn.dataset.status;
+        const isAlreadyActive = btn.classList.contains('active');
+        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        if (!isAlreadyActive) applyMtStatus(status);
+        updateRootCauseAvailability();
+      });
+    });
+  }
+
+  function updateRootCauseAvailability() {
+    const status = getMtStatus();
+    const enabled = status === 'OAWAP' || status === 'ONA';
+    document.querySelectorAll('.root-cause-toggle').forEach(btn => {
+      if (enabled) {
+        btn.classList.remove('disabled');
+        btn.setAttribute('title', 'Tick if this is a root cause for OAWAP or ONA');
+      } else {
+        btn.classList.add('disabled');
+        btn.setAttribute('title', 'Set MT status to OAWAP or ONA to mark root causes');
+        if (btn.classList.contains('active')) {
+          const compCode = btn.dataset.comp;
+          applyRootCause(compCode, false);
+        }
+      }
+    });
+  }
+
+  function setupSessionMetaEdit() {
+    ['sessionMeta', 'pilotName'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          el.blur();
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        document.execCommand('insertText', false, sanitizeText(text));
+      });
+      el.addEventListener('input', () => {
+        const stripped = el.textContent.replace(/[\r\n]+/g, ' ');
+        if (stripped !== el.textContent) el.textContent = stripped;
+      });
+    });
+  }
+
+  function setSessionHeader() {
+    document.getElementById('sessionMeta').textContent = `${SESSION.code} / ${SESSION.name}`;
+    document.getElementById('pilotName').textContent = PILOT.label;
+    document.title = `${SESSION.code} - ${PILOT.label}`;
+  }
+
+  function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+  }
+
+  function getWordTarget(textareaId) {
+    if (textareaId === 'eval-oc' || textareaId === 'mt-oc') return 40;
+    if (textareaId.startsWith('mt-')) return null;            // MT uncapped
+    if (textareaId.startsWith('eval-')) {
+      const code = textareaId.slice(5);
+      const grade = getGrade(code);
+      if (grade === 5) return 50;                             // lean G5 target, 60 ceiling
+      if (grade === 4) return ['k','h','a','p'].includes(code) ? 20 : 35;
+      return null;                                            // G1/2/3 evidence-led, or no grade set
+    }
+    return null;
+  }
+
+  function updateCount(textarea) {
+    const card = textarea.closest('.field-card');
+    const counter = card.querySelector('.char-count');
+    const words = textarea.value.trim() ? textarea.value.trim().split(/\s+/).length : 0;
+    const target = getWordTarget(textarea.id);
+    if (target === null) {
+      counter.textContent = words + ' words (no cap)';
+      counter.style.color = '';
+      counter.style.fontWeight = '';
+    } else {
+      counter.textContent = words + ' words (' + target + ')';
+      const over = words > target;
+      counter.style.color = over ? 'var(--grade-1)' : '';
+      counter.style.fontWeight = over ? '600' : '';
+    }
+  }
+
+  function updateProgress() {
+    const visibleCards = document.querySelectorAll('.field-card:not([hidden])');
+    let copied = 0;
+    visibleCards.forEach(c => { if (c.classList.contains('copied')) copied++; });
+    document.getElementById('totalCount').textContent = visibleCards.length;
+    document.getElementById('copiedCount').textContent = copied;
+  }
+
+  function setupCopy() {
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.dataset.count = '0';
+      btn.addEventListener('click', async () => {
+        const targetId = btn.dataset.target;
+        const textarea = document.getElementById(targetId);
+        const card = btn.closest('.field-card');
+        const statusTag = card.querySelector('.status-tag');
+        try {
+          // Final-guard sanitise at copy time - clipboard is always clean
+          await navigator.clipboard.writeText(sanitizeText(textarea.value));
+          const count = parseInt(btn.dataset.count) + 1;
+          btn.dataset.count = count;
+          btn.textContent = `Copied (${count})`;
+          btn.classList.add('copied');
+          card.classList.add('copied');
+          statusTag.textContent = 'Copied';
+          statusTag.classList.remove('pending');
+          statusTag.classList.add('done');
+          updateProgress();
+        } catch (err) {
+          const originalText = btn.textContent;
+          btn.textContent = 'Error';
+          setTimeout(() => { btn.textContent = originalText; }, 1500);
+        }
+      });
+    });
+  }
+
+  function setupReset() {
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      const ok = confirm('Reset copy progress?\n\nClears the green buttons and counters so you can start the TMS paste cycle fresh.\n\nText, grades, root-cause flags and MT status will NOT be touched.');
+      if (!ok) return;
+      document.querySelectorAll('.field-card').forEach(card => {
+        card.classList.remove('copied');
+        const tag = card.querySelector('.status-tag');
+        tag.textContent = 'Pending';
+        tag.classList.remove('done');
+        tag.classList.add('pending');
+      });
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.dataset.count = '0';
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      });
+      updateProgress();
+    });
+  }
+
+  function setupCompetencyToggles() {
+    document.querySelectorAll('#mtToggles .comp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const comp = btn.dataset.comp;
+        const card = document.getElementById(`mt-card-${comp}`);
+        if (!card) return;
+        const textarea = card.querySelector('.field-textarea');
+        const isOpen = !card.hasAttribute('hidden');
+        if (isOpen) {
+          const hasContent = textarea && textarea.value.trim().length > 0;
+          if (hasContent) {
+            const ok = confirm(`!! ARE YOU SURE !!\n\nThe MT ${comp.toUpperCase()} block still has text. Closing will hide it from the report output.\n\nText is preserved - you can reopen the block to get it back.\n\nProceed?`);
+            if (!ok) return;
+          }
+          card.setAttribute('hidden', '');
+          btn.classList.remove('active');
+        } else {
+          card.removeAttribute('hidden');
+          btn.classList.add('active');
+          setTimeout(() => {
+            if (textarea) autoResize(textarea);
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
+        }
+        updateProgress();
+      });
+    });
+  }
+
+  function generateReportText(headerLines) {
+    const lines = [...headerLines, ''];
+    const sessionMeta = getSessionMeta();
+    const pilot = getPilotLabel();
+
+    lines.push(`--- ${pilot.toUpperCase()} ---`);
+    lines.push('');
+
+    // EVAL section
+    lines.push('=== EVALUATION ===');
+    lines.push('');
+    COMPETENCIES.forEach(c => {
+      const grade = getGrade(c.code);
+      const text = sanitizeText(document.getElementById(`eval-${c.code}`).value);
+      lines.push(`${c.label} - ${c.name}${grade ? ` [Grade ${grade}]` : ' [Grade: not set]'}`);
+      lines.push(text);
+      lines.push('');
+    });
+    lines.push('Eval Overall Comments');
+    lines.push(sanitizeText(document.getElementById('eval-oc').value));
+    lines.push('');
+
+    // MT section
+    const mtStatus = getMtStatus();
+    lines.push('=== MANOEUVRE TRAINING ===');
+    lines.push(`MT Status: ${mtStatus || 'NOT SET'}`);
+    const rootCauses = [];
+    document.querySelectorAll('.root-cause-toggle.active').forEach(btn => {
+      rootCauses.push(btn.dataset.comp.toUpperCase());
+    });
+    if (rootCauses.length > 0) {
+      lines.push(`Root cause(s): ${rootCauses.join(', ')}`);
+    }
+    lines.push('');
+    COMPETENCIES.forEach(c => {
+      const card = document.getElementById(`mt-card-${c.code}`);
+      if (!card || card.hasAttribute('hidden')) return;
+      const text = sanitizeText(document.getElementById(`mt-${c.code}`).value);
+      const isRoot = document.querySelector(`.root-cause-toggle[data-comp="${c.code}"]`).classList.contains('active');
+      lines.push(`${c.label} - ${c.name}${isRoot ? ' [ROOT CAUSE]' : ''}`);
+      lines.push(text);
+      lines.push('');
+    });
+    const mtOcCard = document.getElementById('mt-card-oc');
+    if (mtOcCard && !mtOcCard.hasAttribute('hidden')) {
+      lines.push('MT Overall Comments');
+      lines.push(sanitizeText(document.getElementById('mt-oc').value));
+      lines.push('');
+    }
+
+    lines.push('=== END ===');
+    return lines.join('\n');
+  }
+
+  function setupCopyAll() {
+    const btn = document.getElementById('copyAllBtn');
+    btn.addEventListener('click', async () => {
+      const content = generateReportText([
+        `=== ${getSessionMeta()} - ${getPilotLabel().toUpperCase()} - HOUSE STYLE CHECK ===`,
+        '(Final edited version from artifact)'
+      ]);
+      try {
+        await navigator.clipboard.writeText(content);
+        btn.textContent = 'Copied - paste into chat';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Send to Claude for review';
+          btn.classList.remove('copied');
+        }, 2500);
+      } catch (err) {
+        btn.textContent = 'Error - try again';
+        setTimeout(() => { btn.textContent = 'Send to Claude for review'; }, 2000);
+      }
+    });
+  }
+
+  function setupDone() {
+    const btn = document.getElementById('doneBtn');
+    btn.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const filename = `${today}_${getSessionFilename()}.txt`;
+      const timestamp = new Date().toLocaleString('en-GB');
+      const content = generateReportText([
+        `=== ${getSessionMeta()} - ${getPilotLabel().toUpperCase()} ===`,
+        `Saved: ${timestamp}`,
+        'Status: Final submitted version'
+      ]);
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      btn.textContent = `Saved - ${filename}`;
+      btn.classList.add('saved');
+      setTimeout(() => {
+        btn.textContent = 'Save Final Record';
+        btn.classList.remove('saved');
+      }, 3500);
+    });
+  }
+
+  const OB_DATA = [
+    { code:'K', name:'Application of Knowledge', desc:'Demonstrates knowledge and understanding of relevant information, operating instructions, aircraft systems and the operating environment.', obs:[
+      ['0.1','Practical, applicable knowledge of limitations, systems and their interaction'],
+      ['0.2','Knowledge of published operating instructions'],
+      ['0.3','Knowledge of the physical and ATC environment - routings, weather, airports, infrastructure'],
+      ['0.4','Knowledge of applicable legislation'],
+      ['0.5','Knows where to source required information'],
+      ['0.6','Positive interest in acquiring knowledge'],
+      ['0.7','Applies knowledge effectively'] ] },
+    { code:'H', name:'Flight Path Control, Manual', desc:'Controls the flight path through manual control.', obs:[
+      ['4.1','Controls the aircraft manually with accuracy and smoothness as appropriate'],
+      ['4.2','Detects deviations from the intended flight path and acts'],
+      ['4.3','Uses attitude, speed and thrust against nav signals or visual cues'],
+      ['4.4','Manages the flight path for optimum operational performance'],
+      ['4.5','Holds the flight path while managing other tasks and distractions'],
+      ['4.6','Uses appropriate flight management and guidance systems'],
+      ['4.7','Monitors flight guidance including engagement and mode transitions'] ] },
+    { code:'A', name:'Flight Path Control, Automation', desc:'Controls the flight path through automation.', obs:[
+      ['3.1','Uses appropriate FMS, guidance and automation for the conditions'],
+      ['3.2','Detects deviations from the intended flight path and acts'],
+      ['3.3','Manages the flight path for optimum operational performance'],
+      ['3.4','Holds the flight path on automation while managing other tasks'],
+      ['3.5','Selects appropriate automation level and mode in a timely manner'],
+      ['3.6','Monitors automation including engagement and mode transitions'] ] },
+    { code:'P', name:'Application of Procedures', desc:'Identifies and applies appropriate procedures per published operating instructions and applicable regulations.', obs:[
+      ['1.1','Identifies where to find procedures and regulations'],
+      ['1.2','Applies operating instructions, procedures and techniques in a timely manner'],
+      ['1.3','Follows SOPs unless a higher degree of safety dictates deviation'],
+      ['1.4','Operates aeroplane systems and equipment correctly'],
+      ['1.5','Monitors aircraft systems status'],
+      ['1.6','Complies with applicable regulations'],
+      ['1.7','Applies relevant procedural knowledge'] ] },
+    { code:'M', name:'Workload Management', desc:'Maintains available workload capacity by prioritising and distributing tasks using appropriate resources.', obs:[
+      ['8.1','Exercises self-control in all situations'],
+      ['8.2','Plans, prioritises and schedules tasks effectively'],
+      ['8.3','Manages time efficiently'],
+      ['8.4','Offers and gives assistance'],
+      ['8.5','Delegates tasks'],
+      ['8.6','Seeks and accepts assistance when appropriate'],
+      ['8.7','Monitors, reviews and cross-checks conscientiously'],
+      ['8.8','Verifies tasks completed to the expected outcome'],
+      ['8.9','Manages and recovers from interruptions, distractions and failures'] ] },
+    { code:'S', name:'Situation Awareness and Management of Information', desc:'Perceives, comprehends and manages information and anticipates its effect on the operation.', obs:[
+      ['7.1','Monitors and assesses the aeroplane and its systems'],
+      ['7.2','Monitors and assesses energy state and anticipated flight path'],
+      ['7.3','Monitors and assesses the general environment'],
+      ['7.4','Validates accuracy of information, checks for gross errors'],
+      ['7.5','Aware of people involved and their capacity to perform'],
+      ['7.6','Develops contingency plans against threats and errors'],
+      ['7.7','Responds to indications of reduced situation awareness'] ] },
+    { code:'D', name:'Problem Solving and Decision Making', desc:'Identifies precursors, mitigates problems, and makes decisions.', obs:[
+      ['6.1','Identifies, assesses and manages threats and errors in a timely manner'],
+      ['6.2','Seeks accurate, adequate information from appropriate sources'],
+      ['6.3','Identifies and verifies what and why things have gone wrong'],
+      ['6.4','Perseveres through problems while prioritising safety'],
+      ['6.5','Identifies and considers appropriate options'],
+      ['6.6','Applies appropriate, timely decision-making techniques'],
+      ['6.7','Monitors, reviews and adapts decisions as required'],
+      ['6.8','Adapts where no guidance or procedure exists'],
+      ['6.9','Demonstrates resilience to unexpected events'] ] },
+    { code:'C', name:'Communication', desc:'Communicates through appropriate means in normal and non-normal situations.', obs:[
+      ['2.1','Confirms the recipient is ready and able to receive'],
+      ['2.2','Selects what, when, how and with whom to communicate'],
+      ['2.3','Conveys messages clearly, accurately and concisely'],
+      ['2.4','Confirms recipient understanding of important information'],
+      ['2.5','Listens actively and demonstrates understanding'],
+      ['2.6','Asks relevant and effective questions'],
+      ['2.7','Uses appropriate escalation to resolve deviations'],
+      ['2.8','Uses and interprets non-verbal communication appropriately'],
+      ['2.9','Adheres to standard RT phraseology and procedures'],
+      ['2.10','Reads, interprets and responds to datalink messages in English'] ] },
+    { code:'L', name:'Leadership and Teamwork', desc:'Influences others toward a shared purpose, collaborates to accomplish team goals.', obs:[
+      ['5.1','Encourages team participation and open communication'],
+      ['5.2','Shows initiative and gives direction when required'],
+      ['5.3','Engages others in planning'],
+      ['5.4','Considers inputs from others'],
+      ['5.5','Gives and receives feedback constructively'],
+      ['5.6','Resolves conflicts and disagreements constructively'],
+      ['5.7','Exercises decisive leadership when required'],
+      ['5.8','Accepts responsibility for decisions and actions'],
+      ['5.9','Carries out instructions when directed'],
+      ['5.10','Applies effective intervention strategies'],
+      ['5.11','Manages cultural and language challenges'] ] }
+  ];
+
+  let obFilter = 'ALL';
+
+  function renderObLetters() {
+    const wrap = document.getElementById('obLetters');
+    const letters = ['ALL', ...OB_DATA.map(c => c.code)];
+    wrap.innerHTML = letters.map(l => {
+      const cls = 'ob-letter' + (l === 'ALL' ? ' all' : '') + (obFilter === l ? ' active' : '');
+      return `<button class="${cls}" data-letter="${l}">${l}</button>`;
+    }).join('');
+    wrap.querySelectorAll('.ob-letter').forEach(b => {
+      b.addEventListener('click', () => { obFilter = b.dataset.letter; renderObLetters(); renderObContent(); });
+    });
+  }
+
+  function renderObContent() {
+    const content = document.getElementById('obContent');
+    const comps = obFilter === 'ALL' ? OB_DATA : OB_DATA.filter(c => c.code === obFilter);
+    content.innerHTML = comps.map(c => `
+      <div class="ob-comp">
+        <div class="ob-comp-name"><span class="ob-code">${c.code}</span>${escapeHtml(c.name)}</div>
+        <div class="ob-desc">${escapeHtml(c.desc)}</div>
+        <ul class="ob-list">
+          ${c.obs.map(o => `<li><span class="ob-ref">OB ${o[0]}</span><span>${escapeHtml(o[1])}</span></li>`).join('')}
+        </ul>
+      </div>`).join('');
+  }
+
+  function setupOb() {
+    renderObLetters();
+    renderObContent();
+    const overlay = document.getElementById('obOverlay');
+    document.getElementById('obBtn').addEventListener('click', () => overlay.classList.add('open'));
+    document.getElementById('obClose').addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  }
+
+  function setupTheme() {
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? '' : 'dark');
+    });
+  }
+
+  function setupClearForm() {
+    document.getElementById('clearFormBtn').addEventListener('click', () => {
+      const ok = confirm('Clear THIS form?\n\nWipes all text, grades, MT status and root-cause flags on this report so it can be reused for a fresh pilot.\n\nCannot be undone. No other report files are affected.');
+      if (!ok) return;
+      COMPETENCIES.forEach(c => {
+        const ev = document.getElementById(`eval-${c.code}`); if (ev) ev.value = '';
+        clearGrade(c.code);
+        const mt = document.getElementById(`mt-${c.code}`); if (mt) mt.value = '';
+        applyRootCause(c.code, false);
+        const card = document.getElementById(`mt-card-${c.code}`); if (card) card.setAttribute('hidden', '');
+        const tog = document.querySelector(`#mtToggles .comp-btn[data-comp="${c.code}"]`); if (tog) tog.classList.remove('active');
+      });
+      const eoc = document.getElementById('eval-oc'); if (eoc) eoc.value = '';
+      const moc = document.getElementById('mt-oc'); if (moc) moc.value = '';
+      document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.field-textarea').forEach(ta => {
+        updateCount(ta);
+        const cd = ta.closest('.field-card');
+        if (cd && !cd.hasAttribute('hidden')) autoResize(ta);
+      });
+      updateRootCauseAvailability();
+      updateProgress();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setSessionHeader();
+    renderEval();
+    renderMtToggles();
+    renderMt();
+    populateContent();
+
+    document.querySelectorAll('.field-textarea').forEach(ta => {
+      const card = ta.closest('.field-card');
+      if (card && !card.hasAttribute('hidden')) autoResize(ta);
+      updateCount(ta);
+      attachSanitizer(ta);
+      ta.addEventListener('input', () => {
+        autoResize(ta);
+        updateCount(ta);
+      });
+    });
+
+    setupGradeSelectors();
+    setupRootCauseToggles();
+    setupMtStatusButtons();
+    setupCompetencyToggles();
+    setupCopy();
+    setupReset();
+    setupCopyAll();
+    setupDone();
+    setupSessionMetaEdit();
+    setupTheme();
+    setupOb();
+    setupClearForm();
+    updateRootCauseAvailability();
+    updateProgress();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Report Drafts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F1EA;
+    --card: #FFFFFF;
+    --text: #1A1A1A;
+    --text-muted: #5C5C5C;
+    --border: #DDD6CA;
+    --accent: #002B5C;
+    --accent-soft: #E8EEF5;
+    --success: #1B5E20;
+    --warn: #B45309;
+    --grade-1: #B91C1C;
+    --grade-2: #C2410C;
+    --grade-3: #B45309;
+    --grade-4: #15803D;
+    --grade-5: #1E40AF;
+    --root-cause: #B45309;
+    --card-2: #EFEAE0;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  [data-theme="dark"] {
+    --bg: #14171C;
+    --card: #1E232B;
+    --card-2: #252B34;
+    --text: #E8E6E1;
+    --text-muted: #9BA3AD;
+    --border: #2E353F;
+    --accent: #5B8FD6;
+    --accent-soft: #233244;
+    --success: #4ADE80;
+    --warn: #FBBF24;
+    --grade-1: #F87171;
+    --grade-2: #FB923C;
+    --grade-3: #FBBF24;
+    --grade-4: #4ADE80;
+    --grade-5: #60A5FA;
+    --root-cause: #FB923C;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 2.5rem 1.25rem 4rem;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--text);
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    left: 0;
+    width: 32px;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .session-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: 2px;
+    cursor: text;
+    outline: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    min-width: 4rem;
+  }
+
+  .session-meta:hover, .session-meta:focus {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .session-meta-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .session-meta-edit-hint {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    letter-spacing: 0.1em;
+  }
+
+  .session-meta-wrap:hover .session-meta-edit-hint {
+    opacity: 0.7;
+  }
+
+  .session-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    font-variation-settings: 'opsz' 96;
+  }
+
+  .session-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-weight: 400;
+  }
+
+  /* Pilot identifier */
+  .pilot-banner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0.8rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pilot-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 48;
+    cursor: text;
+    outline: none;
+    padding: 0.1rem 0.3rem;
+    margin-left: -0.3rem;
+    border-radius: 2px;
+    transition: background 0.15s ease;
+  }
+
+  .pilot-name:hover, .pilot-name:focus {
+    background: var(--accent-soft);
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .progress {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .progress-count {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .reset-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .reset-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .primary-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.55rem 1.1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .primary-btn:hover { background: #001D40; }
+  .primary-btn.copied { background: var(--success); }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* Section dividers */
+  .section-header {
+    margin: 2.5rem 0 1.25rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--text);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  .section-header::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 48px;
+    height: 4px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 48;
+    text-transform: uppercase;
+  }
+
+  .section-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* MT Status Selector */
+  .mt-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .mt-status-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .status-options {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .status-btn {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .status-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .status-btn.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  .status-btn.active.oawap {
+    background: var(--warn);
+    border-color: var(--warn);
+  }
+
+  .status-btn.active.ona {
+    background: var(--grade-1);
+    border-color: var(--grade-1);
+  }
+
+  /* Competency toggle buttons (MT only) */
+  .competency-toggles {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    padding: 0.6rem 0.65rem;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+  }
+
+  .comp-btn {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 2.4rem;
+    text-align: center;
+  }
+
+  .comp-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .comp-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Field card */
+  .field-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .field-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .field-card.copied {
+    border-color: var(--success);
+    background: linear-gradient(to right, rgba(27, 94, 32, 0.03), var(--card) 30%);
+  }
+
+  .field-card.root-cause-marked {
+    border-color: var(--root-cause);
+    background: linear-gradient(to right, rgba(180, 83, 9, 0.04), var(--card) 40%);
+  }
+
+  .field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.85rem 0.55rem 0.5rem;
+    background: linear-gradient(to bottom, #FAFAF7, #FFFFFF);
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .field-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.55rem;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 1.75rem;
+    text-align: center;
+  }
+
+  .field-code.overall {
+    background: var(--text);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .field-name {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .field-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Grade selector */
+  .grade-selector {
+    display: flex;
+    gap: 0.2rem;
+  }
+
+  .grade-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 1.7rem;
+    text-align: center;
+  }
+
+  .grade-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .grade-btn.active {
+    color: white;
+    border-color: transparent;
+  }
+
+  .grade-btn.active[data-grade="1"] { background: var(--grade-1); }
+  .grade-btn.active[data-grade="2"] { background: var(--grade-2); }
+  .grade-btn.active[data-grade="3"] { background: var(--grade-3); }
+  .grade-btn.active[data-grade="4"] { background: var(--grade-4); }
+  .grade-btn.active[data-grade="5"] { background: var(--grade-5); }
+
+  /* Root-cause checkbox */
+  .root-cause-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: transparent;
+    transition: all 0.15s ease;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .root-cause-toggle:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .root-cause-toggle.active {
+    background: var(--root-cause);
+    color: white;
+    border-color: var(--root-cause);
+  }
+
+  .root-cause-toggle .indicator {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+    display: inline-block;
+    position: relative;
+  }
+
+  .root-cause-toggle.active .indicator::after {
+    content: '\2713';
+    position: absolute;
+    inset: -0.2rem 0 0 0.05rem;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: white;
+  }
+
+  .root-cause-toggle.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border) !important;
+  }
+
+  .root-cause-toggle.disabled:hover {
+    border-color: var(--border) !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* Copy button */
+  .copy-btn {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+
+  .copy-btn:hover { background: #001D40; }
+  .copy-btn.copied { background: var(--success); }
+  .copy-btn.copied:hover { background: #154A1A; }
+
+  .field-textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: vertical;
+    padding: 0.95rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--card);
+    min-height: 70px;
+    display: block;
+  }
+
+  .field-textarea:focus { background: #FFFDF7; }
+
+  /* Grade guidance hint */
+  .grade-guidance {
+    padding: 0.4rem 1rem;
+    background: var(--accent-soft);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+
+  .grade-guidance.g1, .grade-guidance.g2 {
+    background: rgba(185, 28, 28, 0.07);
+    color: var(--grade-1);
+  }
+
+  .grade-guidance.g3, .grade-guidance.g5 {
+    background: rgba(180, 83, 9, 0.07);
+    color: var(--grade-3);
+  }
+
+  .grade-guidance.g4 {
+    background: rgba(21, 128, 61, 0.06);
+    color: var(--grade-4);
+  }
+
+  .field-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    background: #FAFAF7;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .status-tag.pending { color: var(--text-muted); }
+  .status-tag.done { color: var(--success); }
+
+  /* Done section */
+  .done-section {
+    margin-top: 2.5rem;
+    padding: 1.75rem 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .done-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+  }
+
+  .done-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .done-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .done-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--text);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .done-btn:hover { background: var(--accent); }
+  .done-btn.saved { background: var(--success); }
+
+  .footer-note {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .footer-note strong { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 600px) {
+    body { padding: 1.5rem 0.75rem 3rem; }
+    .field-name { font-size: 0.75rem; }
+    .field-header { padding: 0.5rem; }
+    .copy-btn { min-width: 75px; padding: 0.35rem 0.5rem; font-size: 0.6rem; }
+    .grade-btn { min-width: 1.4rem; font-size: 0.65rem; }
+  }
+  /* Top icon bar */
+  .top-bar { display:flex; justify-content:flex-end; gap:0.4rem; margin-bottom:1rem; }
+  .icon-btn { font-family:var(--font-mono); font-size:0.8rem; font-weight:600; min-width:2.2rem; height:2.2rem; padding:0 0.6rem; background:var(--card); color:var(--text-muted); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.15s ease; }
+  .icon-btn:hover { color:var(--text); border-color:var(--text-muted); }
+  .icon-btn.danger:hover { color:var(--grade-1); border-color:var(--grade-1); }
+
+  /* OB overlay */
+  .ob-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:none; padding:1rem; }
+  .ob-overlay.open { display:flex; align-items:flex-start; justify-content:center; }
+  .ob-panel { background:var(--card); border:1px solid var(--border); border-radius:12px; width:100%; max-width:680px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; margin-top:2vh; }
+  .ob-head { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1rem; border-bottom:1px solid var(--border); }
+  .ob-head h2 { font-family:var(--font-display); font-size:1.2rem; font-weight:600; }
+  .ob-close { font-size:1rem; background:transparent; border:1px solid var(--border); color:var(--text-muted); width:2rem; height:2rem; border-radius:6px; cursor:pointer; }
+  .ob-letters { display:flex; gap:0.3rem; flex-wrap:wrap; padding:0.7rem 1rem; border-bottom:1px solid var(--border); }
+  .ob-letter { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; min-width:2.3rem; padding:0.45rem 0; background:var(--card-2); color:var(--text-muted); border:1px solid var(--border); border-radius:6px; cursor:pointer; text-align:center; }
+  .ob-letter.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .ob-letter.all { min-width:3.2rem; letter-spacing:0.05em; }
+  .ob-content { padding:1rem; overflow-y:auto; }
+  .ob-comp { margin-bottom:1.4rem; }
+  .ob-comp-name { font-family:var(--font-display); font-size:1.05rem; font-weight:700; margin-bottom:0.25rem; }
+  .ob-code { font-family:var(--font-mono); font-size:0.8rem; font-weight:700; background:var(--accent); color:#fff; padding:0.1rem 0.45rem; border-radius:4px; margin-right:0.45rem; }
+  .ob-desc { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-bottom:0.6rem; line-height:1.5; }
+  .ob-list { list-style:none; display:flex; flex-direction:column; gap:0.45rem; }
+  .ob-list li { font-size:0.88rem; line-height:1.45; display:flex; gap:0.5rem; }
+  .ob-ref { font-family:var(--font-mono); font-size:0.7rem; font-weight:600; color:var(--accent); white-space:nowrap; padding-top:0.05rem; }
+
+  .pilot-section { margin-bottom: 2.5rem; }
+  .pilot-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
+  .pilot-header .pilot-name { cursor: default; padding: 0; margin-left: 0; }
+  .pilot-header .pilot-name:hover { background: transparent; }
+  .pilot-meta { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .pilot-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 0.55rem 0.85rem; background: var(--card); border: 1px solid var(--border); border-radius: 4px; flex-wrap: wrap; gap: 0.6rem; }
+  .pilot-toolbar-left { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+  .pilot-progress { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.05em; }
+  .pilot-progress-count { color: var(--accent); font-weight: 600; }
+  .pilot-send-btn { font-size: 0.68rem; padding: 0.45rem 0.95rem; }
+  .comp-btn.active:hover { background: #001D40; border-color: #001D40; }
+  .char-count { font-variant-numeric: tabular-nums; }
+  .status-tag { font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-bar">
+    <button class="icon-btn" id="obBtn" title="Observable Behaviours reference">OB</button>
+    <button class="icon-btn" id="themeBtn" title="Light / dark">&#9680;</button>
+    <button class="icon-btn danger" id="clearFormBtn" title="Clear this report for reuse">&#10227; Clear</button>
+  </div>
+
+  <header class="header">
+    <div class="session-meta-wrap">
+      <div class="session-meta" id="sessionMeta" contenteditable="true" spellcheck="false">Session</div>
+      <span class="session-meta-edit-hint">&#9998; click to edit</span>
+    </div>
+    <h1 class="session-title">Session Report Drafts</h1>
+    <div class="session-subtitle">Edit any field before copying. Toggle competency blocks on or off as needed.</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="progress">
+        <span class="progress-count" id="copiedCount">0</span> of <span id="totalCount">0</span> fields copied to TMS
+      </div>
+      <button class="reset-btn" id="resetBtn">Reset progress</button>
+    </div>
+    <button class="primary-btn" id="copyAllBtn">Send to Claude for review</button>
+  </div>
+
+  <div id="pilotsContainer"></div>
+
+  <div class="done-section">
+    <div class="done-title">Ready to submit?</div>
+    <div class="done-subtitle">Saves a date-stamped record of the final text. Useful for archive and future review.</div>
+    <button class="done-btn" id="doneBtn">Save Final Record</button>
+  </div>
+
+  <div class="footer-note">
+    <strong>Workflow:</strong><br>
+    1. Use the <em>K H A P M S D C L</em> toggle buttons at the top of each pilot section to open/close competency blocks. Closing a non-empty block prompts <em>!! ARE YOU SURE !!</em> - text is preserved, just hidden from the report.<br>
+    2. Review and edit the text in any open box. Migrate observations between competencies by opening the target block, cutting and pasting, then closing the source.<br>
+    3. To iterate one crew member at a time: use the per-pilot <em>Send [Name] to Claude</em> button, paste into chat, and I review just that pilot. The global <em>Send to Claude for review</em> at the top sends everyone at once.<br>
+    4. Use the per-field <em>Copy</em> buttons to paste into TMS. Each click turns the button green and shows the count. The per-pilot progress bar tracks each crew member separately.<br>
+    5. Before clicking submit in TMS, screenshot the page and drop it into chat for a final review.<br>
+    6. Once submitted, click <em>Save Final Record</em> to download a date-stamped .txt archive.<br>
+    <strong>Auto-sanitiser:</strong> illegal characters (em dashes, curly quotes, hidden Unicode, weird spaces) are corrected to plain keyboard characters live as you type or paste, and once more at every Copy click - what reaches TMS is always clean.<br>
+    <br>
+    <strong>TEMPLATE v1.1</strong> (17 Aug 2026) - auto-sanitiser build
+  </div>
+
+</div>
+
+<div class="ob-overlay" id="obOverlay">
+  <div class="ob-panel">
+    <div class="ob-head"><h2>Observable Behaviours</h2><button class="ob-close" id="obClose">&#10005;</button></div>
+    <div class="ob-letters" id="obLetters"></div>
+    <div class="ob-content" id="obContent"></div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // TRIPLE SEVEN SESSION REPORT TEMPLATE v1.1
+  // ============================================================
+  const SESSION = {
+    code: 'XXXX',
+    name: 'Session',
+    filename: 'XXXX_Session'
+  };
+
+  const COMPETENCIES = [
+    { code: 'k', label: 'K', name: 'Application of Knowledge' },
+    { code: 'h', label: 'H', name: 'Aircraft Flight Path Control, Manual Control' },
+    { code: 'a', label: 'A', name: 'Aircraft Flight Path Control, Automation' },
+    { code: 'p', label: 'P', name: 'Application of Procedures' },
+    { code: 'm', label: 'M', name: 'Workload Management' },
+    { code: 's', label: 'S', name: 'Situation Awareness and Management of Information' },
+    { code: 'd', label: 'D', name: 'Problem Solving and Decision Making' },
+    { code: 'c', label: 'C', name: 'Communication' },
+    { code: 'l', label: 'L', name: 'Leadership and Teamwork' }
+  ];
+
+  const PILOTS = [];  // filled by build_sbt.py
+
+  // ============================================================
+  // ENGINE
+  // ============================================================
+    const CHAR_MAP = [
+    [/[\u2012\u2013\u2014\u2015\u2212]/g, '-'],        // figure/en/em dash, horizontal bar, minus sign
+    [/[\u2018\u2019\u201A\u201B\u2032]/g, "'"],        // curly single quotes, prime
+    [/[\u201C\u201D\u201E\u201F\u2033]/g, '"'],        // curly double quotes, double prime
+    [/\u2026/g, '...'],                                  // ellipsis character
+    [/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' '],  // non-breaking, thin and exotic spaces
+    [/[\u200B-\u200F\u2060\uFEFF\u00AD]/g, ''],        // zero-width, joiners, BOM, soft hyphen, directional marks
+    [/\u00D7/g, 'x'],                                    // multiplication sign
+    [/[\u2022\u25CF\u25E6]/g, '-'],                     // bullet characters
+    [/[\u2190-\u2194\u27A1]/g, '-']                     // arrows
+  ];
+
+  function sanitizeText(str) {
+    let out = str || '';
+    CHAR_MAP.forEach(pair => { out = out.replace(pair[0], pair[1]); });
+    return out;
+  }
+
+  function attachSanitizer(textarea) {
+    textarea.addEventListener('input', () => {
+      const clean = sanitizeText(textarea.value);
+      if (clean !== textarea.value) {
+        const pos = sanitizeText(textarea.value.slice(0, textarea.selectionStart)).length;
+        textarea.value = clean;
+        textarea.setSelectionRange(pos, pos);
+      }
+    });
+  }
+
+  const copiedFields = new Set();
+
+  function getSessionMeta() {
+    const el = document.getElementById('sessionMeta');
+    const text = el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    return sanitizeText(text) || `${SESSION.code} / ${SESSION.name}`;
+  }
+
+  function getSessionFilename() {
+    const meta = getSessionMeta();
+    const safe = meta
+      .replace(/\s*\/\s*/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_-]/g, '')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
+    return safe || SESSION.filename;
+  }
+
+  function setupSessionMetaEdit() {
+    const el = document.getElementById('sessionMeta');
+    if (!el) return;
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+    });
+    el.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      document.execCommand('insertText', false, sanitizeText(text));
+    });
+    el.addEventListener('input', () => {
+      const stripped = el.textContent.replace(/[\r\n]+/g, ' ');
+      if (stripped !== el.textContent) {
+        el.textContent = stripped;
+      }
+    });
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  function buildPilotSection(pilot) {
+    const togglesHTML = COMPETENCIES.map(c => {
+      const isActive = pilot.active.includes(c.code);
+      return `<button class="comp-btn${isActive ? ' active' : ''}" data-pilot="${pilot.key}" data-comp="${c.code}" title="${c.label} - ${c.name}">${c.label}</button>`;
+    }).join('');
+
+    const competencyCardsHTML = COMPETENCIES.map(c => {
+      const isActive = pilot.active.includes(c.code);
+      return `
+        <div class="field-card" id="card-${pilot.key}-${c.code}"${isActive ? '' : ' hidden'}>
+          <div class="field-header">
+            <div class="field-label">
+              <span class="field-code">${c.label}</span>
+              <span class="field-name">${escapeHtml(c.name)}</span>
+            </div>
+            <button class="copy-btn" data-target="${pilot.key}-${c.code}">Copy</button>
+          </div>
+          <textarea class="field-textarea" id="${pilot.key}-${c.code}"></textarea>
+          <div class="field-footer">
+            <span class="char-count">0 chars</span>
+            <span class="status-tag pending">Pending</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    const ocCardHTML = `
+      <div class="field-card" id="card-${pilot.key}-oc">
+        <div class="field-header">
+          <div class="field-label">
+            <span class="field-code overall">OC</span>
+            <span class="field-name">Overall Comments</span>
+          </div>
+          <button class="copy-btn" data-target="${pilot.key}-oc">Copy</button>
+        </div>
+        <textarea class="field-textarea" id="${pilot.key}-oc"></textarea>
+        <div class="field-footer">
+          <span class="char-count">0 chars</span>
+          <span class="status-tag pending">Pending</span>
+        </div>
+      </div>`;
+
+    const compCount = pilot.active.length;
+    const compLabel = compCount === 1 ? 'competency' : 'competencies';
+
+    const section = document.createElement('section');
+    section.className = 'pilot-section';
+    section.dataset.pilot = pilot.key;
+    section.innerHTML = `
+      <div class="pilot-header">
+        <h2 class="pilot-name">${escapeHtml(pilot.label)}</h2>
+        <span class="pilot-meta">${compCount} ${compLabel} + overall</span>
+      </div>
+      <div class="pilot-toolbar">
+        <div class="pilot-toolbar-left">
+          <div class="pilot-progress">
+            <span class="pilot-progress-count">0</span> of <span class="pilot-total-count">0</span> copied to TMS
+          </div>
+          <button class="reset-btn pilot-reset-btn" data-pilot="${pilot.key}">Reset</button>
+        </div>
+        <button class="primary-btn pilot-send-btn" data-pilot="${pilot.key}">Send ${escapeHtml(pilot.label)} to Claude</button>
+      </div>
+      <div class="competency-toggles">${togglesHTML}</div>
+      ${competencyCardsHTML}
+      ${ocCardHTML}
+    `;
+    return section;
+  }
+
+  function populateTextareas() {
+    PILOTS.forEach(pilot => {
+      COMPETENCIES.forEach(c => {
+        const ta = document.getElementById(`${pilot.key}-${c.code}`);
+        if (ta) ta.value = sanitizeText(pilot.content[c.code] || '');
+      });
+      const ocTa = document.getElementById(`${pilot.key}-oc`);
+      if (ocTa) ocTa.value = sanitizeText(pilot.content.oc || '');
+    });
+  }
+
+  function renderPilots() {
+    const container = document.getElementById('pilotsContainer');
+    container.innerHTML = '';
+    PILOTS.forEach(pilot => {
+      container.appendChild(buildPilotSection(pilot));
+    });
+    populateTextareas();
+  }
+
+  function setSessionHeader() {
+    document.getElementById('sessionMeta').textContent = `${SESSION.code} / ${SESSION.name}`;
+    document.title = `${SESSION.code} - ${SESSION.name}`;
+  }
+
+  function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+  }
+
+  function updateCount(textarea) {
+    const card = textarea.closest('.field-card');
+    const counter = card.querySelector('.char-count');
+    const words = textarea.value.trim() ? textarea.value.trim().split(/\s+/).length : 0;
+    counter.textContent = words + ' words';
+  }
+
+  function updateProgress() {
+    const visibleCards = document.querySelectorAll('.field-card:not([hidden])');
+    let copiedVisible = 0;
+    visibleCards.forEach(card => {
+      if (card.classList.contains('copied')) copiedVisible++;
+    });
+    document.getElementById('totalCount').textContent = visibleCards.length;
+    document.getElementById('copiedCount').textContent = copiedVisible;
+
+    PILOTS.forEach(pilot => {
+      const section = document.querySelector(`.pilot-section[data-pilot="${pilot.key}"]`);
+      if (!section) return;
+      const pilotCards = section.querySelectorAll('.field-card:not([hidden])');
+      let pilotCopied = 0;
+      pilotCards.forEach(card => {
+        if (card.classList.contains('copied')) pilotCopied++;
+      });
+      const progressEl = section.querySelector('.pilot-progress');
+      if (progressEl) {
+        progressEl.querySelector('.pilot-progress-count').textContent = pilotCopied;
+        progressEl.querySelector('.pilot-total-count').textContent = pilotCards.length;
+      }
+    });
+  }
+
+  function setupCopy() {
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.dataset.count = '0';
+      btn.addEventListener('click', async () => {
+        const targetId = btn.dataset.target;
+        const textarea = document.getElementById(targetId);
+        const card = btn.closest('.field-card');
+        const statusTag = card.querySelector('.status-tag');
+
+        try {
+          await navigator.clipboard.writeText(sanitizeText(textarea.value));
+          const count = parseInt(btn.dataset.count) + 1;
+          btn.dataset.count = count;
+          btn.textContent = `Copied (${count})`;
+          btn.classList.add('copied');
+          card.classList.add('copied');
+          statusTag.textContent = 'Copied';
+          statusTag.classList.remove('pending');
+          statusTag.classList.add('done');
+          copiedFields.add(targetId);
+          updateProgress();
+        } catch (err) {
+          const originalText = btn.textContent;
+          btn.textContent = 'Error';
+          setTimeout(() => { btn.textContent = originalText; }, 1500);
+        }
+      });
+    });
+  }
+
+  function resetCopyState(pilotKey) {
+    const cardSelector = pilotKey
+      ? `.pilot-section[data-pilot="${pilotKey}"] .field-card`
+      : '.field-card';
+    document.querySelectorAll(cardSelector).forEach(card => {
+      card.classList.remove('copied');
+      const tag = card.querySelector('.status-tag');
+      tag.textContent = 'Pending';
+      tag.classList.remove('done');
+      tag.classList.add('pending');
+    });
+    const btnSelector = pilotKey
+      ? `.pilot-section[data-pilot="${pilotKey}"] .copy-btn`
+      : '.copy-btn';
+    document.querySelectorAll(btnSelector).forEach(btn => {
+      btn.dataset.count = '0';
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    });
+    if (pilotKey) {
+      [...copiedFields].forEach(id => {
+        if (id.startsWith(`${pilotKey}-`)) copiedFields.delete(id);
+      });
+    } else {
+      copiedFields.clear();
+    }
+    updateProgress();
+  }
+
+  function setupReset() {
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      const ok = confirm('Reset copy progress for ALL pilots?\n\nThis clears the green buttons and counters across the whole report so you can start the TMS paste cycle fresh.\n\nYour text edits will NOT be touched.');
+      if (!ok) return;
+      resetCopyState(null);
+    });
+    document.querySelectorAll('.pilot-reset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pilotKey = btn.dataset.pilot;
+        const section = btn.closest('.pilot-section');
+        const label = section ? section.querySelector('.pilot-name').textContent : pilotKey;
+        const ok = confirm(`Reset copy progress for ${label} only?\n\nThis clears the green buttons and counters for ${label}'s blocks only - other pilots are not affected.\n\nText edits will NOT be touched.`);
+        if (!ok) return;
+        resetCopyState(pilotKey);
+      });
+    });
+  }
+
+  function generateReportText(headerLines, pilotFilterKey = null) {
+    const lines = [...headerLines, ''];
+    PILOTS.forEach(pilot => {
+      if (pilotFilterKey && pilot.key !== pilotFilterKey) return;
+      lines.push(`--- ${pilot.label.toUpperCase()} ---`);
+      lines.push('');
+      COMPETENCIES.forEach(c => {
+        const card = document.getElementById(`card-${pilot.key}-${c.code}`);
+        if (!card || card.hasAttribute('hidden')) return;
+        const value = sanitizeText(document.getElementById(`${pilot.key}-${c.code}`).value);
+        lines.push(`${c.label} - ${c.name}`);
+        lines.push(value);
+        lines.push('');
+      });
+      const ocCard = document.getElementById(`card-${pilot.key}-oc`);
+      if (ocCard && !ocCard.hasAttribute('hidden')) {
+        lines.push('Overall Comments');
+        lines.push(sanitizeText(document.getElementById(`${pilot.key}-oc`).value));
+        lines.push('');
+      }
+    });
+    lines.push('=== END ===');
+    return lines.join('\n');
+  }
+
+  async function sendForReview(pilotKey, btn) {
+    const pilot = pilotKey ? PILOTS.find(p => p.key === pilotKey) : null;
+    const headerLabel = pilot
+      ? `${getSessionMeta()} - ${pilot.label.toUpperCase()} - HOUSE STYLE CHECK`
+      : `${getSessionMeta()} - HOUSE STYLE CHECK`;
+
+    const content = generateReportText([
+      `=== ${headerLabel} ===`,
+      '(Final edited version from artifact)'
+    ], pilotKey);
+
+    const originalText = btn.textContent;
+    try {
+      await navigator.clipboard.writeText(content);
+      btn.textContent = 'Copied - paste into chat';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('copied');
+      }, 2500);
+    } catch (err) {
+      btn.textContent = 'Error - try again';
+      setTimeout(() => { btn.textContent = originalText; }, 2000);
+    }
+  }
+
+  function setupCopyAll() {
+    document.getElementById('copyAllBtn').addEventListener('click', async () => {
+      await sendForReview(null, document.getElementById('copyAllBtn'));
+    });
+    document.querySelectorAll('.pilot-send-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await sendForReview(btn.dataset.pilot, btn);
+      });
+    });
+  }
+
+  function setupCompetencyToggles() {
+    document.querySelectorAll('.comp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pilot = btn.dataset.pilot;
+        const comp = btn.dataset.comp;
+        const card = document.getElementById(`card-${pilot}-${comp}`);
+        if (!card) return;
+        const textarea = card.querySelector('.field-textarea');
+        const isOpen = !card.hasAttribute('hidden');
+
+        if (isOpen) {
+          const hasContent = textarea && textarea.value.trim().length > 0;
+          if (hasContent) {
+            const ok = confirm(`!! ARE YOU SURE !!\n\nThe ${comp.toUpperCase()} block still has text in it. Closing will hide it from the report and from the "Send to Claude" / "Save Final Record" output.\n\nThe text itself is preserved - you can reopen the block to get it back.\n\nProceed?`);
+            if (!ok) return;
+          }
+          card.setAttribute('hidden', '');
+          btn.classList.remove('active');
+        } else {
+          card.removeAttribute('hidden');
+          btn.classList.add('active');
+          setTimeout(() => {
+            if (textarea) autoResize(textarea);
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
+        }
+        updateProgress();
+      });
+    });
+  }
+
+  function setupDone() {
+    const btn = document.getElementById('doneBtn');
+    btn.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const filename = `${today}_${getSessionFilename()}.txt`;
+      const timestamp = new Date().toLocaleString('en-GB');
+
+      const content = generateReportText([
+        `=== ${getSessionMeta()} ===`,
+        `Saved: ${timestamp}`,
+        'Status: Final submitted version'
+      ]);
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      btn.textContent = `Saved - ${filename}`;
+      btn.classList.add('saved');
+      setTimeout(() => {
+        btn.textContent = 'Save Final Record';
+        btn.classList.remove('saved');
+      }, 3500);
+    });
+  }
+
+    const OB_DATA = [
+    { code:'K', name:'Application of Knowledge', desc:'Demonstrates knowledge and understanding of relevant information, operating instructions, aircraft systems and the operating environment.', obs:[
+      ['0.1','Practical, applicable knowledge of limitations, systems and their interaction'],
+      ['0.2','Knowledge of published operating instructions'],
+      ['0.3','Knowledge of the physical and ATC environment - routings, weather, airports, infrastructure'],
+      ['0.4','Knowledge of applicable legislation'],
+      ['0.5','Knows where to source required information'],
+      ['0.6','Positive interest in acquiring knowledge'],
+      ['0.7','Applies knowledge effectively'] ] },
+    { code:'H', name:'Flight Path Control, Manual', desc:'Controls the flight path through manual control.', obs:[
+      ['4.1','Controls the aircraft manually with accuracy and smoothness as appropriate'],
+      ['4.2','Detects deviations from the intended flight path and acts'],
+      ['4.3','Uses attitude, speed and thrust against nav signals or visual cues'],
+      ['4.4','Manages the flight path for optimum operational performance'],
+      ['4.5','Holds the flight path while managing other tasks and distractions'],
+      ['4.6','Uses appropriate flight management and guidance systems'],
+      ['4.7','Monitors flight guidance including engagement and mode transitions'] ] },
+    { code:'A', name:'Flight Path Control, Automation', desc:'Controls the flight path through automation.', obs:[
+      ['3.1','Uses appropriate FMS, guidance and automation for the conditions'],
+      ['3.2','Detects deviations from the intended flight path and acts'],
+      ['3.3','Manages the flight path for optimum operational performance'],
+      ['3.4','Holds the flight path on automation while managing other tasks'],
+      ['3.5','Selects appropriate automation level and mode in a timely manner'],
+      ['3.6','Monitors automation including engagement and mode transitions'] ] },
+    { code:'P', name:'Application of Procedures', desc:'Identifies and applies appropriate procedures per published operating instructions and applicable regulations.', obs:[
+      ['1.1','Identifies where to find procedures and regulations'],
+      ['1.2','Applies operating instructions, procedures and techniques in a timely manner'],
+      ['1.3','Follows SOPs unless a higher degree of safety dictates deviation'],
+      ['1.4','Operates aeroplane systems and equipment correctly'],
+      ['1.5','Monitors aircraft systems status'],
+      ['1.6','Complies with applicable regulations'],
+      ['1.7','Applies relevant procedural knowledge'] ] },
+    { code:'M', name:'Workload Management', desc:'Maintains available workload capacity by prioritising and distributing tasks using appropriate resources.', obs:[
+      ['8.1','Exercises self-control in all situations'],
+      ['8.2','Plans, prioritises and schedules tasks effectively'],
+      ['8.3','Manages time efficiently'],
+      ['8.4','Offers and gives assistance'],
+      ['8.5','Delegates tasks'],
+      ['8.6','Seeks and accepts assistance when appropriate'],
+      ['8.7','Monitors, reviews and cross-checks conscientiously'],
+      ['8.8','Verifies tasks completed to the expected outcome'],
+      ['8.9','Manages and recovers from interruptions, distractions and failures'] ] },
+    { code:'S', name:'Situation Awareness and Management of Information', desc:'Perceives, comprehends and manages information and anticipates its effect on the operation.', obs:[
+      ['7.1','Monitors and assesses the aeroplane and its systems'],
+      ['7.2','Monitors and assesses energy state and anticipated flight path'],
+      ['7.3','Monitors and assesses the general environment'],
+      ['7.4','Validates accuracy of information, checks for gross errors'],
+      ['7.5','Aware of people involved and their capacity to perform'],
+      ['7.6','Develops contingency plans against threats and errors'],
+      ['7.7','Responds to indications of reduced situation awareness'] ] },
+    { code:'D', name:'Problem Solving and Decision Making', desc:'Identifies precursors, mitigates problems, and makes decisions.', obs:[
+      ['6.1','Identifies, assesses and manages threats and errors in a timely manner'],
+      ['6.2','Seeks accurate, adequate information from appropriate sources'],
+      ['6.3','Identifies and verifies what and why things have gone wrong'],
+      ['6.4','Perseveres through problems while prioritising safety'],
+      ['6.5','Identifies and considers appropriate options'],
+      ['6.6','Applies appropriate, timely decision-making techniques'],
+      ['6.7','Monitors, reviews and adapts decisions as required'],
+      ['6.8','Adapts where no guidance or procedure exists'],
+      ['6.9','Demonstrates resilience to unexpected events'] ] },
+    { code:'C', name:'Communication', desc:'Communicates through appropriate means in normal and non-normal situations.', obs:[
+      ['2.1','Confirms the recipient is ready and able to receive'],
+      ['2.2','Selects what, when, how and with whom to communicate'],
+      ['2.3','Conveys messages clearly, accurately and concisely'],
+      ['2.4','Confirms recipient understanding of important information'],
+      ['2.5','Listens actively and demonstrates understanding'],
+      ['2.6','Asks relevant and effective questions'],
+      ['2.7','Uses appropriate escalation to resolve deviations'],
+      ['2.8','Uses and interprets non-verbal communication appropriately'],
+      ['2.9','Adheres to standard RT phraseology and procedures'],
+      ['2.10','Reads, interprets and responds to datalink messages in English'] ] },
+    { code:'L', name:'Leadership and Teamwork', desc:'Influences others toward a shared purpose, collaborates to accomplish team goals.', obs:[
+      ['5.1','Encourages team participation and open communication'],
+      ['5.2','Shows initiative and gives direction when required'],
+      ['5.3','Engages others in planning'],
+      ['5.4','Considers inputs from others'],
+      ['5.5','Gives and receives feedback constructively'],
+      ['5.6','Resolves conflicts and disagreements constructively'],
+      ['5.7','Exercises decisive leadership when required'],
+      ['5.8','Accepts responsibility for decisions and actions'],
+      ['5.9','Carries out instructions when directed'],
+      ['5.10','Applies effective intervention strategies'],
+      ['5.11','Manages cultural and language challenges'] ] }
+  ];
+
+  let obFilter = 'ALL';
+
+  function renderObLetters() {
+    const wrap = document.getElementById('obLetters');
+    const letters = ['ALL', ...OB_DATA.map(c => c.code)];
+    wrap.innerHTML = letters.map(l => {
+      const cls = 'ob-letter' + (l === 'ALL' ? ' all' : '') + (obFilter === l ? ' active' : '');
+      return `<button class="${cls}" data-letter="${l}">${l}</button>`;
+    }).join('');
+    wrap.querySelectorAll('.ob-letter').forEach(b => {
+      b.addEventListener('click', () => { obFilter = b.dataset.letter; renderObLetters(); renderObContent(); });
+    });
+  }
+
+  function renderObContent() {
+    const content = document.getElementById('obContent');
+    const comps = obFilter === 'ALL' ? OB_DATA : OB_DATA.filter(c => c.code === obFilter);
+    content.innerHTML = comps.map(c => `
+      <div class="ob-comp">
+        <div class="ob-comp-name"><span class="ob-code">${c.code}</span>${escapeHtml(c.name)}</div>
+        <div class="ob-desc">${escapeHtml(c.desc)}</div>
+        <ul class="ob-list">
+          ${c.obs.map(o => `<li><span class="ob-ref">OB ${o[0]}</span><span>${escapeHtml(o[1])}</span></li>`).join('')}
+        </ul>
+      </div>`).join('');
+  }
+
+  function setupOb() {
+    renderObLetters();
+    renderObContent();
+    const overlay = document.getElementById('obOverlay');
+    document.getElementById('obBtn').addEventListener('click', () => overlay.classList.add('open'));
+    document.getElementById('obClose').addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  }
+
+  function setupTheme() {
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? '' : 'dark');
+    });
+  }
+
+  function setupClearForm() {
+    document.getElementById('clearFormBtn').addEventListener('click', () => {
+      const ok = confirm('Clear THIS report?\n\nEmpties and closes every competency block for every pilot on this form and resets copy progress, so the form can be reused for a fresh session.\n\nCannot be undone. No other report files are affected.');
+      if (!ok) return;
+      PILOTS.forEach(pilot => {
+        COMPETENCIES.forEach(c => {
+          const ta = document.getElementById(`${pilot.key}-${c.code}`); if (ta) ta.value = '';
+          const card = document.getElementById(`card-${pilot.key}-${c.code}`); if (card) card.setAttribute('hidden', '');
+          const tog = document.querySelector(`.comp-btn[data-pilot="${pilot.key}"][data-comp="${c.code}"]`); if (tog) tog.classList.remove('active');
+        });
+        const oc = document.getElementById(`${pilot.key}-oc`); if (oc) oc.value = '';
+      });
+      resetCopyState(null);
+      document.querySelectorAll('.field-textarea').forEach(ta => {
+        updateCount(ta);
+        const cd = ta.closest('.field-card');
+        if (cd && !cd.hasAttribute('hidden')) autoResize(ta);
+      });
+      updateProgress();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setSessionHeader();
+    renderPilots();
+
+    const textareas = document.querySelectorAll('.field-textarea');
+    textareas.forEach(ta => {
+      const card = ta.closest('.field-card');
+      if (card && !card.hasAttribute('hidden')) {
+        autoResize(ta);
+      }
+      updateCount(ta);
+      attachSanitizer(ta);
+      ta.addEventListener('input', () => {
+        autoResize(ta);
+        updateCount(ta);
+      });
+    });
+
+    setupCopy();
+    setupReset();
+    setupCopyAll();
+    setupDone();
+    setupCompetencyToggles();
+    setupSessionMetaEdit();
+    setupTheme();
+    setupOb();
+    setupClearForm();
+    updateProgress();
+  });
+</script>
+</body>
+</html>
