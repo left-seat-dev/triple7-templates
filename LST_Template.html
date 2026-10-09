@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LST Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F1EA;
+    --card: #FFFFFF;
+    --text: #1A1A1A;
+    --text-muted: #5C5C5C;
+    --border: #DDD6CA;
+    --accent: #002B5C;
+    --accent-soft: #E8EEF5;
+    --success: #1B5E20;
+    --warn: #B45309;
+    --grade-1: #B91C1C;
+    --grade-2: #C2410C;
+    --grade-3: #B45309;
+    --grade-4: #15803D;
+    --grade-5: #1E40AF;
+    --root-cause: #B45309;
+    --card-2: #EFEAE0;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  [data-theme="dark"] {
+    --bg: #14171C;
+    --card: #1E232B;
+    --card-2: #252B34;
+    --text: #E8E6E1;
+    --text-muted: #9BA3AD;
+    --border: #2E353F;
+    --accent: #5B8FD6;
+    --accent-soft: #233244;
+    --success: #4ADE80;
+    --warn: #FBBF24;
+    --grade-1: #F87171;
+    --grade-2: #FB923C;
+    --grade-3: #FBBF24;
+    --grade-4: #4ADE80;
+    --grade-5: #60A5FA;
+    --root-cause: #FB923C;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 2.5rem 1.25rem 4rem;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--text);
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    left: 0;
+    width: 32px;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .session-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: 2px;
+    cursor: text;
+    outline: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    min-width: 4rem;
+  }
+
+  .session-meta:hover, .session-meta:focus {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .session-meta-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .session-meta-edit-hint {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    letter-spacing: 0.1em;
+  }
+
+  .session-meta-wrap:hover .session-meta-edit-hint {
+    opacity: 0.7;
+  }
+
+  .session-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    font-variation-settings: 'opsz' 96;
+  }
+
+  .session-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-weight: 400;
+  }
+
+  /* Pilot identifier */
+  .pilot-banner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0.8rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pilot-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 48;
+    cursor: text;
+    outline: none;
+    padding: 0.1rem 0.3rem;
+    margin-left: -0.3rem;
+    border-radius: 2px;
+    transition: background 0.15s ease;
+  }
+
+  .pilot-name:hover, .pilot-name:focus {
+    background: var(--accent-soft);
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .progress {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .progress-count {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .reset-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .reset-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .primary-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.55rem 1.1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .primary-btn:hover { background: #001D40; }
+  .primary-btn.copied { background: var(--success); }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* Section dividers */
+  .section-header {
+    margin: 2.5rem 0 1.25rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--text);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  .section-header::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 48px;
+    height: 4px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 48;
+    text-transform: uppercase;
+  }
+
+  .section-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* MT Status Selector */
+  .mt-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .mt-status-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .status-options {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .status-btn {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .status-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .status-btn.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  .status-btn.active.oawap {
+    background: var(--warn);
+    border-color: var(--warn);
+  }
+
+  .status-btn.active.ona {
+    background: var(--grade-1);
+    border-color: var(--grade-1);
+  }
+
+  /* Competency toggle buttons (MT only) */
+  .competency-toggles {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    padding: 0.6rem 0.65rem;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+  }
+
+  .comp-btn {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 2.4rem;
+    text-align: center;
+  }
+
+  .comp-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .comp-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Field card */
+  .field-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .field-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .field-card.copied {
+    border-color: var(--success);
+    background: linear-gradient(to right, rgba(27, 94, 32, 0.03), var(--card) 30%);
+  }
+
+  .field-card.root-cause-marked {
+    border-color: var(--root-cause);
+    background: linear-gradient(to right, rgba(180, 83, 9, 0.04), var(--card) 40%);
+  }
+
+  .field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.85rem 0.55rem 0.5rem;
+    background: linear-gradient(to bottom, #FAFAF7, #FFFFFF);
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .field-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.55rem;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 1.75rem;
+    text-align: center;
+  }
+
+  .field-code.overall {
+    background: var(--text);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .field-name {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .field-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Grade selector */
+  .grade-selector {
+    display: flex;
+    gap: 0.2rem;
+  }
+
+  .grade-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 1.7rem;
+    text-align: center;
+  }
+
+  .grade-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .grade-btn.active {
+    color: white;
+    border-color: transparent;
+  }
+
+  .grade-btn.active[data-grade="1"] { background: var(--grade-1); }
+  .grade-btn.active[data-grade="2"] { background: var(--grade-2); }
+  .grade-btn.active[data-grade="3"] { background: var(--grade-3); }
+  .grade-btn.active[data-grade="4"] { background: var(--grade-4); }
+  .grade-btn.active[data-grade="5"] { background: var(--grade-5); }
+
+  /* Root-cause checkbox */
+  .root-cause-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: transparent;
+    transition: all 0.15s ease;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .root-cause-toggle:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .root-cause-toggle.active {
+    background: var(--root-cause);
+    color: white;
+    border-color: var(--root-cause);
+  }
+
+  .root-cause-toggle .indicator {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+    display: inline-block;
+    position: relative;
+  }
+
+  .root-cause-toggle.active .indicator::after {
+    content: '\2713';
+    position: absolute;
+    inset: -0.2rem 0 0 0.05rem;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: white;
+  }
+
+  .root-cause-toggle.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border) !important;
+  }
+
+  .root-cause-toggle.disabled:hover {
+    border-color: var(--border) !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* Copy button */
+  .copy-btn {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+
+  .copy-btn:hover { background: #001D40; }
+  .copy-btn.copied { background: var(--success); }
+  .copy-btn.copied:hover { background: #154A1A; }
+
+  .field-textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: vertical;
+    padding: 0.95rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--card);
+    min-height: 70px;
+    display: block;
+  }
+
+  .field-textarea:focus { background: #FFFDF7; }
+
+  /* Grade guidance hint */
+  .grade-guidance {
+    padding: 0.4rem 1rem;
+    background: var(--accent-soft);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+
+  .grade-guidance.g1, .grade-guidance.g2 {
+    background: rgba(185, 28, 28, 0.07);
+    color: var(--grade-1);
+  }
+
+  .grade-guidance.g3, .grade-guidance.g5 {
+    background: rgba(180, 83, 9, 0.07);
+    color: var(--grade-3);
+  }
+
+  .grade-guidance.g4 {
+    background: rgba(21, 128, 61, 0.06);
+    color: var(--grade-4);
+  }
+
+  .field-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    background: #FAFAF7;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .status-tag.pending { color: var(--text-muted); }
+  .status-tag.done { color: var(--success); }
+
+  /* Done section */
+  .done-section {
+    margin-top: 2.5rem;
+    padding: 1.75rem 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .done-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+  }
+
+  .done-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .done-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .done-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--text);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .done-btn:hover { background: var(--accent); }
+  .done-btn.saved { background: var(--success); }
+
+  .footer-note {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .footer-note strong { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 600px) {
+    body { padding: 1.5rem 0.75rem 3rem; }
+    .field-name { font-size: 0.75rem; }
+    .field-header { padding: 0.5rem; }
+    .copy-btn { min-width: 75px; padding: 0.35rem 0.5rem; font-size: 0.6rem; }
+    .grade-btn { min-width: 1.4rem; font-size: 0.65rem; }
+  }
+  /* Top icon bar */
+  .top-bar { display:flex; justify-content:flex-end; gap:0.4rem; margin-bottom:1rem; }
+  .icon-btn { font-family:var(--font-mono); font-size:0.8rem; font-weight:600; min-width:2.2rem; height:2.2rem; padding:0 0.6rem; background:var(--card); color:var(--text-muted); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.15s ease; }
+  .icon-btn:hover { color:var(--text); border-color:var(--text-muted); }
+  .icon-btn.danger:hover { color:var(--grade-1); border-color:var(--grade-1); }
+
+  /* OB overlay */
+  .ob-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:none; padding:1rem; }
+  .ob-overlay.open { display:flex; align-items:flex-start; justify-content:center; }
+  .ob-panel { background:var(--card); border:1px solid var(--border); border-radius:12px; width:100%; max-width:680px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; margin-top:2vh; }
+  .ob-head { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1rem; border-bottom:1px solid var(--border); }
+  .ob-head h2 { font-family:var(--font-display); font-size:1.2rem; font-weight:600; }
+  .ob-close { font-size:1rem; background:transparent; border:1px solid var(--border); color:var(--text-muted); width:2rem; height:2rem; border-radius:6px; cursor:pointer; }
+  .ob-letters { display:flex; gap:0.3rem; flex-wrap:wrap; padding:0.7rem 1rem; border-bottom:1px solid var(--border); }
+  .ob-letter { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; min-width:2.3rem; padding:0.45rem 0; background:var(--card-2); color:var(--text-muted); border:1px solid var(--border); border-radius:6px; cursor:pointer; text-align:center; }
+  .ob-letter.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .ob-letter.all { min-width:3.2rem; letter-spacing:0.05em; }
+  .ob-content { padding:1rem; overflow-y:auto; }
+  .ob-comp { margin-bottom:1.4rem; }
+  .ob-comp-name { font-family:var(--font-display); font-size:1.05rem; font-weight:700; margin-bottom:0.25rem; }
+  .ob-code { font-family:var(--font-mono); font-size:0.8rem; font-weight:700; background:var(--accent); color:#fff; padding:0.1rem 0.45rem; border-radius:4px; margin-right:0.45rem; }
+  .ob-desc { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-bottom:0.6rem; line-height:1.5; }
+  .ob-list { list-style:none; display:flex; flex-direction:column; gap:0.45rem; }
+  .ob-list li { font-size:0.88rem; line-height:1.45; display:flex; gap:0.5rem; }
+  .ob-ref { font-family:var(--font-mono); font-size:0.7rem; font-weight:600; color:var(--accent); white-space:nowrap; padding-top:0.05rem; }
+  /* ---- LST additions ---- */
+  [data-theme="dark"] .field-header { background: var(--card-2); }
+  [data-theme="dark"] .field-footer { background: var(--card-2); }
+  [data-theme="dark"] .field-code.overall { background: var(--text-muted); color: var(--bg); }
+  .form-sec { margin: 1.4rem 0 0.6rem; padding: 0.45rem 0.7rem; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 6px; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .form-sec .pick { margin-left: auto; font-weight: 600; color: var(--text-muted); }
+  .form-sec .pick.short { color: var(--grade-1); }
+  .field-code.row { min-width: 3.6rem; font-size: 0.72rem; }
+  .code-sel { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.3rem; min-width: 4.4rem; border: 1.5px solid var(--accent); border-radius: 4px; background: var(--accent-soft); color: var(--accent); cursor: pointer; }
+  .row-sub { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); }
+  .row-card .field-name { white-space: normal; overflow: visible; }
+  .row-card .field-textarea { min-height: 3.2rem; }
+  @media (max-width: 600px) { .row-card .field-label { flex-basis: 100%; } .row-card .field-controls { margin-left: auto; } }
+  .row-sub-label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+  .reason-chips { display: flex; gap: 0.2rem; flex-wrap: wrap; }
+  .reason-chip { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; min-width: 1.6rem; padding: 0.2rem 0; text-align: center; border: 1px solid var(--border); border-radius: 5px; background: var(--card-2); color: var(--text-muted); cursor: pointer; }
+  .reason-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .rep-btn { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; padding: 0.22rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; background: var(--card-2); color: var(--text-muted); cursor: pointer; }
+  .rep-btn.on { background: var(--warn); border-color: var(--warn); color: #fff; }
+  .grade-btn.na { min-width: 2.1rem; }
+  .grade-btn.active[data-grade="NA"] { background: var(--text-muted); color: #fff; }
+  .result-bar .status-btn { min-width: 6.5rem; }
+  .checks { text-align: left; margin: 0.9rem auto 1rem; max-width: 34rem; font-size: 0.82rem; line-height: 1.5; }
+  .checks li { margin-left: 1.1rem; color: var(--grade-1); }
+  .checks .ok { color: var(--success); font-weight: 600; list-style: none; margin-left: 0; }
+  .checks .soft { color: var(--warn); }
+  .restore-note { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border: 1px dashed var(--warn); border-radius: 8px; font-size: 0.8rem; color: var(--warn); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-bar">
+    <button class="icon-btn" id="obBtn" title="Observable Behaviours reference">OB</button>
+    <button class="icon-btn" id="themeBtn" title="Light / dark">&#9680;</button>
+    <button class="icon-btn danger" id="clearFormBtn" title="Clear this form for reuse">&#10227; Clear</button>
+  </div>
+
+  <header class="header">
+    <div class="session-meta-wrap">
+      <div class="session-meta" id="sessionMeta" contenteditable="true" spellcheck="false">Session</div>
+      <span class="session-meta-edit-hint">&#9998; click to edit</span>
+    </div>
+    <h1 class="session-title">Licence Skill Test Report</h1>
+    <div class="session-subtitle">One candidate per file. Laid out in eTags order: LST rows, result, trainer comments, then PAMS.</div>
+  </header>
+
+  <div class="pilot-banner">
+    <div class="pilot-name" id="pilotName" contenteditable="true" spellcheck="false">Candidate</div>
+    <span class="section-meta" id="pilotMeta">Click name to edit</span>
+  </div>
+
+  <div id="restoreNote" class="restore-note" hidden>Restored your edits from this browser. Use Clear to start from the draft again.</div>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="progress">
+        <span class="progress-count" id="copiedCount">0</span> of <span id="totalCount">0</span> fields copied to eTags
+      </div>
+      <button class="reset-btn" id="resetBtn">Reset progress</button>
+    </div>
+    <button class="primary-btn" id="copyAllBtn">Send to Claude for review</button>
+  </div>
+
+  <!-- ============ LST SECTION ============ -->
+  <div class="section-header">
+    <h2 class="section-title">LST</h2>
+    <span class="section-meta">Repeats / Final grade 1-5 / Reason / Comments per row</span>
+  </div>
+  <div id="lstContainer"></div>
+
+  <div class="mt-status-bar result-bar">
+    <span class="mt-status-label">LST RESULT:</span>
+    <div class="status-options">
+      <button class="status-btn" data-status="PASS">Pass</button>
+      <button class="status-btn ona" data-status="FAIL">Fail</button>
+      <button class="status-btn oawap" data-status="INCOMPLETE">Incomplete</button>
+    </div>
+  </div>
+  <div id="trainerContainer"></div>
+
+  <!-- ============ PAMS SECTION ============ -->
+  <div class="section-header">
+    <h2 class="section-title">PAMS</h2>
+    <span class="section-meta">All 9 competencies mandatory: grade 1-5 or NA, plus a comment</span>
+  </div>
+  <div id="pamsContainer"></div>
+
+  <div class="done-section">
+    <div class="done-title">Ready to submit?</div>
+    <ul class="checks" id="checks"></ul>
+    <div class="done-subtitle">Tick <strong>Qualification: LST</strong> in eTags before submit. Saves a date-stamped record of rows, grades, result and PAMS.</div>
+    <button class="done-btn" id="doneBtn">Save Final Record</button>
+  </div>
+
+  <div class="footer-note">
+    <strong>Workflow:</strong><br>
+    1. <strong>LST rows:</strong> one card per eTags row this candidate was tested on. Locked rows show a solid code chip; rows you can change on eTags carry a dropdown, pre-set from the script and your pad choice. Grade every row. Reason chips = the competency letters that drove the grade. Repeats toggles 0/1 (one per item, two per test). A G4 row comment can stay blank; a repeat, a G3 or below, or a G5 carries one line.<br>
+    2. <strong>LST RESULT</strong> and <strong>Additional Comments from Trainer</strong>: test-record lines only, no coaching.<br>
+    3. <strong>PAMS:</strong> all nine are mandatory in eTags. Grade 1-5 or NA, comment each. Then Overall Comments.<br>
+    4. The checklist above the save button lists anything eTags will refuse or a reader would query.<br>
+    5. Click <em>Send to Claude for review</em>, paste into the report thread for RFR. Then copy each field into eTags and click <em>Save Final Record</em>.<br>
+    6. One file per candidate. Edits are kept in this browser until you Clear.<br>
+    <strong>Auto-sanitiser:</strong> em dashes, curly quotes, hidden Unicode and odd spaces are corrected to plain keyboard characters as you type or paste, and again at every Copy click.<br>
+    <br>
+    <strong>LST TEMPLATE v1.0</strong> (Oct 2026)
+  </div>
+
+</div>
+
+<div class="ob-overlay" id="obOverlay">
+  <div class="ob-panel">
+    <div class="ob-head"><h2>Observable Behaviours</h2><button class="ob-close" id="obClose">&#10005;</button></div>
+    <div class="ob-letters" id="obLetters"></div>
+    <div class="ob-content" id="obContent"></div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // LST REPORT TEMPLATE v1.0 - one candidate per file
+  // Blank template. FORM, PILOT and SESSION are filled by build_lst.py.
+  // ============================================================
+  const SESSION = {
+    code: 'XXXX',
+    name: 'Licence Skill Test',
+    trainer: 'B',
+    build: 'XXXX'
+  };
+
+  const COMPETENCIES = [
+    { code: 'k', label: 'K', name: 'Application of Knowledge' },
+    { code: 'h', label: 'H', name: 'Aircraft Flight Path Management, Manual Control' },
+    { code: 'a', label: 'A', name: 'Aircraft Flight Path Management, Automation' },
+    { code: 'p', label: 'P', name: 'Application of Procedures and Compliance with Regulations' },
+    { code: 'm', label: 'M', name: 'Workload Management' },
+    { code: 's', label: 'S', name: 'Situation Awareness and Management of Information' },
+    { code: 'd', label: 'D', name: 'Problem Solving and Decision Making' },
+    { code: 'c', label: 'C', name: 'Communication' },
+    { code: 'l', label: 'L', name: 'Leadership and Teamwork' }
+  ];
+  const LETTERS = COMPETENCIES.map(c => c.label);
+
+  // FORM: the eTags rows this candidate is graded on, grouped by form section.
+  const FORM = null;  // filled by build_lst.py
+  // PILOT: single-candidate content. Open a separate file for the other candidate.
+  const PILOT = null;  // filled by build_lst.py
+
+  // ---- AUTO-SANITISER (keyboard-only, Style_Guide REF_007) ----
+  const CHAR_MAP = [
+    [/[\u2012\u2013\u2014\u2015\u2212]/g, '-'],        // figure/en/em dash, horizontal bar, minus sign
+    [/[\u2018\u2019\u201A\u201B\u2032]/g, "'"],        // curly single quotes, prime
+    [/[\u201C\u201D\u201E\u201F\u2033]/g, '"'],        // curly double quotes, double prime
+    [/\u2026/g, '...'],                                  // ellipsis character
+    [/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' '],  // non-breaking, thin and exotic spaces
+    [/[\u200B-\u200F\u2060\uFEFF\u00AD]/g, ''],        // zero-width, joiners, BOM, soft hyphen, directional marks
+    [/\u00D7/g, 'x'],                                    // multiplication sign
+    [/[\u2022\u25CF\u25E6\u00B7]/g, '-'],                     // bullet characters
+    [/[\u2190-\u2194\u27A1]/g, '-']                     // arrows
+  ];
+  function sanitizeText(str) {
+    let out = str || '';
+    CHAR_MAP.forEach(pair => { out = out.replace(pair[0], pair[1]); });
+    return out;
+  }
+  function attachSanitizer(ta) {
+    ta.addEventListener('input', () => {
+      const clean = sanitizeText(ta.value);
+      if (clean !== ta.value) {
+        const pos = sanitizeText(ta.value.slice(0, ta.selectionStart)).length;
+        ta.value = clean;
+        ta.setSelectionRange(pos, pos);
+      }
+    });
+  }
+  function nonKeyboard(str) { return /[^\x20-\x7E\n]/.test(str || ''); }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+  const rid = code => code.replace(/\./g, '_');
+  const allRows = () => FORM.reduce((a, s) => a.concat(s.items), []);
+  // A row is a slot. Locked rows have a fixed code; selectable rows (pool) carry a dropdown.
+  function codeOf(it) { const sel = document.querySelector(`.code-sel[data-slot="${it.slot}"]`); return sel ? sel.value : it.code; }
+  function labelOf(it) { const c = codeOf(it); if (!it.pool) return it.label; const e = it.pool.find(x => x[0] === c); return e ? e[1] : c; }
+  const wordsOf = s => (s || '').trim() ? s.trim().split(/\s+/).length : 0;
+
+  function getSessionMeta() {
+    const el = document.getElementById('sessionMeta');
+    const text = el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    return sanitizeText(text) || `${SESSION.code} / ${SESSION.name}`;
+  }
+  function getPilotLabel() {
+    const el = document.getElementById('pilotName');
+    return el ? sanitizeText((el.textContent || '').trim()) : PILOT.label;
+  }
+  function getSessionFilename() {
+    const safe = s => s.replace(/\s*\/\s*/g, '_').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    return `${safe(getSessionMeta())}_${safe(getPilotLabel())}` || 'LST_Report';
+  }
+
+  // ---------------- rendering ----------------
+  function gradeButtons(key, withNa) {
+    const gs = withNa ? [1,2,3,4,5,'NA'] : [1,2,3,4,5];
+    return `<div class="grade-selector" data-comp="${key}">` +
+      gs.map(g => `<button class="grade-btn${g === 'NA' ? ' na' : ''}" data-grade="${g}">${g}</button>`).join('') + '</div>';
+  }
+
+  function buildRowCard(item) {
+    const id = item.slot;
+    const card = document.createElement('div');
+    card.className = 'field-card row-card';
+    card.id = `card-row-${id}`;
+    card.innerHTML = `
+      <div class="field-header">
+        <div class="field-label">
+          ${item.pool
+            ? `<select class="code-sel" data-slot="${id}" title="Selectable on the eTags form">${item.pool.map(o => `<option value="${o[0]}"${o[0] === item.code ? ' selected' : ''}>${o[0]}</option>`).join('')}</select>`
+            : `<span class="field-code row" title="Locked on the eTags form">${escapeHtml(item.code)}</span>`}
+          <span class="field-name" id="lab-${id}">${escapeHtml(item.label)}</span>
+        </div>
+        <div class="field-controls">
+          ${gradeButtons('row-' + id, false)}
+          <button class="copy-btn" data-target="row-${id}">Copy</button>
+        </div>
+      </div>
+      <div class="row-sub">
+        <span class="row-sub-label">Repeats</span>
+        <button class="rep-btn" data-rep="${id}">0</button>
+        <span class="row-sub-label">Reason</span>
+        <div class="reason-chips" data-reason="${id}">
+          ${LETTERS.map(l => `<button class="reason-chip" data-l="${l}">${l}</button>`).join('')}
+        </div>
+      </div>
+      <textarea class="field-textarea" id="row-${id}" placeholder="Comments (blank is fine at G4)"></textarea>
+      <div class="field-footer">
+        <span class="char-count">0 words</span>
+        <span class="status-tag pending">Pending</span>
+      </div>`;
+    return card;
+  }
+
+  function buildTextCard(id, code, name, withGrade) {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.id = `card-${id}`;
+    card.innerHTML = `
+      <div class="field-header">
+        <div class="field-label">
+          <span class="field-code${withGrade ? '' : ' overall'}">${escapeHtml(code)}</span>
+          <span class="field-name">${escapeHtml(name)}</span>
+        </div>
+        <div class="field-controls">
+          ${withGrade ? gradeButtons(id, true) : ''}
+          <button class="copy-btn" data-target="${id}">Copy</button>
+        </div>
+      </div>
+      <textarea class="field-textarea" id="${id}"></textarea>
+      <div class="field-footer">
+        <span class="char-count">0 words</span>
+        <span class="status-tag pending">Pending</span>
+      </div>`;
+    return card;
+  }
+
+  function renderAll() {
+    const lc = document.getElementById('lstContainer');
+    lc.innerHTML = '';
+    FORM.forEach((sec, i) => {
+      const h = document.createElement('div');
+      h.className = 'form-sec';
+      h.innerHTML = `<span>${escapeHtml(sec.sec)}</span>` + (sec.pick ? `<span class="pick" id="pick-${i}"></span>` : '');
+      lc.appendChild(h);
+      sec.items.forEach(it => lc.appendChild(buildRowCard(it)));
+    });
+    document.getElementById('trainerContainer').appendChild(
+      buildTextCard('trainer', 'TR', `Additional Comments from Trainer ${SESSION.trainer}`, false));
+    const pc = document.getElementById('pamsContainer');
+    COMPETENCIES.forEach(c => pc.appendChild(buildTextCard('pams-' + c.code, c.label, c.name, true)));
+    pc.appendChild(buildTextCard('oc', 'OC', `Overall Comments from Trainer ${SESSION.trainer}`, false));
+  }
+
+  // ---------------- state get / set ----------------
+  function setGrade(key, g) {
+    const sel = document.querySelector(`.grade-selector[data-comp="${key}"]`);
+    if (!sel) return;
+    sel.querySelectorAll('.grade-btn').forEach(b => b.classList.toggle('active', g !== null && String(b.dataset.grade) === String(g)));
+  }
+  function getGrade(key) {
+    const a = document.querySelector(`.grade-selector[data-comp="${key}"] .grade-btn.active`);
+    if (!a) return null;
+    return a.dataset.grade === 'NA' ? 'NA' : parseInt(a.dataset.grade, 10);
+  }
+  function setRep(id, n) {
+    const b = document.querySelector(`.rep-btn[data-rep="${id}"]`);
+    if (!b) return;
+    b.textContent = String(n ? 1 : 0);
+    b.classList.toggle('on', !!n);
+  }
+  function getRep(id) {
+    const b = document.querySelector(`.rep-btn[data-rep="${id}"]`);
+    return b ? parseInt(b.textContent, 10) || 0 : 0;
+  }
+  function setReason(id, letters) {
+    const set = String(letters || '').toUpperCase();
+    document.querySelectorAll(`.reason-chips[data-reason="${id}"] .reason-chip`).forEach(c => c.classList.toggle('active', set.indexOf(c.dataset.l) >= 0));
+  }
+  function getReason(id) {
+    return Array.from(document.querySelectorAll(`.reason-chips[data-reason="${id}"] .reason-chip.active`)).map(c => c.dataset.l);
+  }
+  function setResult(r) {
+    document.querySelectorAll('.result-bar .status-btn').forEach(b => b.classList.toggle('active', b.dataset.status === r));
+  }
+  function getResult() {
+    const a = document.querySelector('.result-bar .status-btn.active');
+    return a ? a.dataset.status : null;
+  }
+  const val = id => sanitizeText((document.getElementById(id) || {}).value || '');
+
+  function snapshot() {
+    const rows = {};
+    allRows().forEach(it => {
+      const id = it.slot;
+      rows[id] = { code: codeOf(it), label: labelOf(it), repeats: getRep(id), grade: getGrade('row-' + id), reason: getReason(id).join(''), text: val('row-' + id) };
+    });
+    const pams = {};
+    COMPETENCIES.forEach(c => { pams[c.code] = { grade: getGrade('pams-' + c.code), text: val('pams-' + c.code) }; });
+    return { label: getPilotLabel(), meta: getSessionMeta(), rows, result: getResult(), trainer: val('trainer'), pams, oc: val('oc') };
+  }
+
+  function apply(p) {
+    allRows().forEach(it => {
+      const id = it.slot;
+      const r = (p.rows || {})[id] || {};
+      const sel = document.querySelector(`.code-sel[data-slot="${id}"]`);
+      if (sel) { sel.value = (r.code && it.pool.some(o => o[0] === r.code)) ? r.code : it.code; document.getElementById('lab-' + id).textContent = labelOf(it); }
+      setRep(id, r.repeats || 0);
+      setGrade('row-' + id, r.grade || null);
+      setReason(id, r.reason || '');
+      document.getElementById('row-' + id).value = sanitizeText(r.text || '');
+    });
+    setResult(p.result || null);
+    document.getElementById('trainer').value = sanitizeText(p.trainer || '');
+    COMPETENCIES.forEach(c => {
+      const r = (p.pams || {})[c.code] || {};
+      setGrade('pams-' + c.code, r.grade || null);
+      document.getElementById('pams-' + c.code).value = sanitizeText(r.text || '');
+    });
+    document.getElementById('oc').value = sanitizeText(p.oc || '');
+    if (p.label) document.getElementById('pilotName').textContent = p.label;
+    if (p.meta) document.getElementById('sessionMeta').textContent = p.meta;
+  }
+
+  // ---------------- persistence (per browser, per build) ----------------
+  const STORE_KEY = () => `lst_report_${SESSION.code}_${PILOT.label}_${SESSION.build}`;
+  function save() { try { localStorage.setItem(STORE_KEY(), JSON.stringify(snapshot())); } catch (e) {} }
+  function load() { try { const s = localStorage.getItem(STORE_KEY()); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function wipe() { try { localStorage.removeItem(STORE_KEY()); } catch (e) {} }
+
+  // ---------------- counts and checks ----------------
+  function wordTarget(id) {
+    if (id === 'trainer' || id === 'oc') return 40;
+    if (id.startsWith('row-')) {
+      const rowId = id.slice(4);
+      if (getRep(rowId)) return null;
+      const g = getGrade(id);
+      if (g === 4) return 15;
+      if (g === 5) return 30;
+      return null;
+    }
+    if (id.startsWith('pams-')) {
+      const code = id.slice(5);
+      const g = getGrade(id);
+      if (g === 5) return 50;
+      if (g === 4 || g === 'NA') return ['k','h','a','p'].includes(code) ? 20 : 35;
+      return null;
+    }
+    return null;
+  }
+  function updateCount(ta) {
+    const card = ta.closest('.field-card');
+    const counter = card.querySelector('.char-count');
+    const w = wordsOf(ta.value);
+    const t = wordTarget(ta.id);
+    counter.textContent = t === null ? `${w} words (no cap)` : `${w} words (${t})`;
+    const over = t !== null && w > t;
+    counter.style.color = over ? 'var(--grade-1)' : '';
+    counter.style.fontWeight = over ? '600' : '';
+  }
+  function autoResize(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+
+  function issues() {
+    const s = snapshot();
+    const hard = [], soft = [];
+    let reps = 0;
+    FORM.forEach((sec, i) => {
+      let graded = 0;
+      sec.items.forEach(it => {
+        const r = s.rows[it.slot];
+        reps += r.repeats;
+        if (r.grade) graded++;
+        if (!r.grade) hard.push(`${r.code}: no grade`);
+        if (r.repeats && !r.text.trim()) hard.push(`${r.code}: repeat awarded, comment empty`);
+        if (r.grade && r.grade !== 4 && !r.text.trim()) hard.push(`${r.code}: G${r.grade} needs a comment`);
+        if (r.grade && r.grade !== 4 && !r.reason) soft.push(`${r.code}: G${r.grade} with no Reason letters`);
+        if (r.grade && r.grade <= 2 && s.result === 'PASS') hard.push(`${r.code}: G${r.grade} against a PASS result`);
+      });
+      const codes = sec.items.map(it => s.rows[it.slot].code);
+      codes.filter((c, j) => codes.indexOf(c) !== j).forEach(c => hard.push(`${c}: selected twice in one section`));
+      const pk = document.getElementById(`pick-${i}`);
+      if (sec.pick && pk) {
+        pk.textContent = `${graded} of min ${sec.pick}`;
+        pk.classList.toggle('short', graded < sec.pick);
+        if (sec.items.length < sec.pick) hard.push(`${sec.sec.split(' (')[0]}: only ${sec.items.length} rows, minimum ${sec.pick}`);
+      }
+    });
+    if (reps > 2) hard.push(`${reps} repeats awarded, test allowance is 2`);
+    if (!s.result) hard.push('LST RESULT not set');
+    if (s.result === 'PASS' && Object.values(s.rows).some(r => r.repeats) && !s.trainer.trim()) soft.push('Repeats awarded: Trainer comment usually names them');
+    COMPETENCIES.forEach(c => {
+      const p = s.pams[c.code];
+      if (!p.grade) hard.push(`PAMS ${c.label}: no grade`);
+      if (!p.text.trim()) hard.push(`PAMS ${c.label}: comment empty (mandatory)`);
+    });
+    if (!s.oc.trim()) hard.push('Overall Comments empty');
+    const all = [s.trainer, s.oc].concat(Object.values(s.rows).map(r => r.text), Object.values(s.pams).map(p => p.text));
+    if (all.some(nonKeyboard)) hard.push('Non-keyboard characters present');
+    return { hard, soft };
+  }
+  function renderChecks() {
+    const { hard, soft } = issues();
+    const ul = document.getElementById('checks');
+    ul.innerHTML = (!hard.length && !soft.length) ? '<li class="ok">All mandatory fields complete.</li>' :
+      hard.map(t => `<li>${escapeHtml(t)}</li>`).join('') + soft.map(t => `<li class="soft">${escapeHtml(t)}</li>`).join('');
+  }
+
+  function updateProgress() {
+    const cards = document.querySelectorAll('.field-card:not([hidden])');
+    let copied = 0;
+    cards.forEach(c => { if (c.classList.contains('copied')) copied++; });
+    document.getElementById('totalCount').textContent = cards.length;
+    document.getElementById('copiedCount').textContent = copied;
+  }
+
+  function changed() {
+    document.querySelectorAll('.field-textarea').forEach(updateCount);
+    renderChecks();
+    save();
+  }
+
+  // ---------------- wiring ----------------
+  function setupControls() {
+    document.querySelectorAll('.grade-selector').forEach(sel => {
+      sel.querySelectorAll('.grade-btn').forEach(btn => btn.addEventListener('click', () => {
+        const key = sel.dataset.comp;
+        setGrade(key, btn.classList.contains('active') ? null : btn.dataset.grade);
+        changed();
+      }));
+    });
+    document.querySelectorAll('.code-sel').forEach(sel => sel.addEventListener('change', () => {
+      const it = allRows().find(x => x.slot === sel.dataset.slot);
+      document.getElementById('lab-' + it.slot).textContent = labelOf(it);
+      changed();
+    }));
+    document.querySelectorAll('.rep-btn').forEach(b => b.addEventListener('click', () => { setRep(b.dataset.rep, getRep(b.dataset.rep) ? 0 : 1); changed(); }));
+    document.querySelectorAll('.reason-chip').forEach(c => c.addEventListener('click', () => { c.classList.toggle('active'); changed(); }));
+    document.querySelectorAll('.result-bar .status-btn').forEach(b => b.addEventListener('click', () => {
+      setResult(b.classList.contains('active') ? null : b.dataset.status); changed();
+    }));
+    ['sessionMeta', 'pilotName'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+      el.addEventListener('blur', () => { el.textContent = sanitizeText(el.textContent.replace(/\s+/g, ' ').trim()); document.title = `${getSessionMeta()} - ${getPilotLabel()}`; save(); });
+    });
+  }
+
+  function setupCopy() {
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.dataset.count = '0';
+      btn.addEventListener('click', async () => {
+        const ta = document.getElementById(btn.dataset.target);
+        const card = btn.closest('.field-card');
+        const tag = card.querySelector('.status-tag');
+        try {
+          await navigator.clipboard.writeText(sanitizeText(ta.value));
+          const n = parseInt(btn.dataset.count, 10) + 1;
+          btn.dataset.count = n;
+          btn.textContent = `Copied (${n})`;
+          btn.classList.add('copied');
+          card.classList.add('copied');
+          tag.textContent = 'Copied'; tag.classList.remove('pending'); tag.classList.add('done');
+          updateProgress();
+        } catch (err) {
+          const t = btn.textContent; btn.textContent = 'Error';
+          setTimeout(() => { btn.textContent = t; }, 1500);
+        }
+      });
+    });
+  }
+
+  function setupReset() {
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Reset copy progress?\n\nClears the green buttons and counters only. Text, grades and result are not touched.')) return;
+      document.querySelectorAll('.field-card').forEach(card => {
+        card.classList.remove('copied');
+        const tag = card.querySelector('.status-tag');
+        tag.textContent = 'Pending'; tag.classList.remove('done'); tag.classList.add('pending');
+      });
+      document.querySelectorAll('.copy-btn').forEach(b => { b.dataset.count = '0'; b.textContent = 'Copy'; b.classList.remove('copied'); });
+      updateProgress();
+    });
+  }
+
+  function generateReportText(head) {
+    const s = snapshot();
+    const L = head.concat(['', `--- ${s.label.toUpperCase()} ---`, '', '=== LST ===', '']);
+    FORM.forEach(sec => {
+      L.push(`# ${sec.sec}`);
+      sec.items.forEach(it => {
+        const r = s.rows[it.slot];
+        L.push(`[${r.code}] ${r.label} | Repeats ${r.repeats} | Grade ${r.grade || 'not set'} | Reason ${r.reason ? r.reason.split('').join(' ') : '-'}`);
+        L.push(r.text || '(no comment)');
+        L.push('');
+      });
+    });
+    L.push(`LST RESULT: ${s.result || 'NOT SET'}`, '');
+    L.push(`Additional Comments from Trainer ${SESSION.trainer}`, s.trainer, '');
+    L.push('=== PAMS ===', '');
+    COMPETENCIES.forEach(c => {
+      const p = s.pams[c.code];
+      L.push(`${c.label} - ${c.name} [${p.grade ? 'Grade ' + p.grade : 'Grade: not set'}]`, p.text, '');
+    });
+    L.push(`Overall Comments from Trainer ${SESSION.trainer}`, s.oc, '', '=== END ===');
+    return L.join('\n');
+  }
+
+  function setupCopyAll() {
+    const btn = document.getElementById('copyAllBtn');
+    btn.addEventListener('click', async () => {
+      const content = generateReportText([`=== ${getSessionMeta()} - ${getPilotLabel().toUpperCase()} - RFR CHECK ===`, '(Final edited version from artifact)']);
+      try {
+        await navigator.clipboard.writeText(content);
+        btn.textContent = 'Copied - paste into chat'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Send to Claude for review'; btn.classList.remove('copied'); }, 2500);
+      } catch (err) {
+        btn.textContent = 'Error - try again';
+        setTimeout(() => { btn.textContent = 'Send to Claude for review'; }, 2000);
+      }
+    });
+  }
+
+  function setupDone() {
+    const btn = document.getElementById('doneBtn');
+    btn.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const filename = `${today}_${getSessionFilename()}.txt`;
+      const content = generateReportText([`=== ${getSessionMeta()} - ${getPilotLabel().toUpperCase()} ===`, `Saved: ${new Date().toLocaleString('en-GB')}`, 'Status: Final submitted version']);
+      const url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      btn.textContent = `Saved - ${filename}`; btn.classList.add('saved');
+      setTimeout(() => { btn.textContent = 'Save Final Record'; btn.classList.remove('saved'); }, 3500);
+    });
+  }
+
+  function setupClearForm() {
+    document.getElementById('clearFormBtn').addEventListener('click', () => {
+      if (!confirm('Clear THIS form?\n\nYes = wipe your edits in this browser and go back to the draft as built.\n\nNo other report files are affected.')) return;
+      wipe();
+      apply(PILOT);
+      document.getElementById('restoreNote').hidden = true;
+      document.querySelectorAll('.field-textarea').forEach(autoResize);
+      changed();
+    });
+  }
+
+  const OB_DATA = [
+    { code:'K', name:'Application of Knowledge', desc:'Demonstrates knowledge and understanding of relevant information, operating instructions, aircraft systems and the operating environment.', obs:[
+      ['0.1','Practical, applicable knowledge of limitations, systems and their interaction'],
+      ['0.2','Knowledge of published operating instructions'],
+      ['0.3','Knowledge of the physical and ATC environment - routings, weather, airports, infrastructure'],
+      ['0.4','Knowledge of applicable legislation'],
+      ['0.5','Knows where to source required information'],
+      ['0.6','Positive interest in acquiring knowledge'],
+      ['0.7','Applies knowledge effectively'] ] },
+    { code:'H', name:'Flight Path Control, Manual', desc:'Controls the flight path through manual control.', obs:[
+      ['4.1','Controls the aircraft manually with accuracy and smoothness as appropriate'],
+      ['4.2','Detects deviations from the intended flight path and acts'],
+      ['4.3','Uses attitude, speed and thrust against nav signals or visual cues'],
+      ['4.4','Manages the flight path for optimum operational performance'],
+      ['4.5','Holds the flight path while managing other tasks and distractions'],
+      ['4.6','Uses appropriate flight management and guidance systems'],
+      ['4.7','Monitors flight guidance including engagement and mode transitions'] ] },
+    { code:'A', name:'Flight Path Control, Automation', desc:'Controls the flight path through automation.', obs:[
+      ['3.1','Uses appropriate FMS, guidance and automation for the conditions'],
+      ['3.2','Detects deviations from the intended flight path and acts'],
+      ['3.3','Manages the flight path for optimum operational performance'],
+      ['3.4','Holds the flight path on automation while managing other tasks'],
+      ['3.5','Selects appropriate automation level and mode in a timely manner'],
+      ['3.6','Monitors automation including engagement and mode transitions'] ] },
+    { code:'P', name:'Application of Procedures', desc:'Identifies and applies appropriate procedures per published operating instructions and applicable regulations.', obs:[
+      ['1.1','Identifies where to find procedures and regulations'],
+      ['1.2','Applies operating instructions, procedures and techniques in a timely manner'],
+      ['1.3','Follows SOPs unless a higher degree of safety dictates deviation'],
+      ['1.4','Operates aeroplane systems and equipment correctly'],
+      ['1.5','Monitors aircraft systems status'],
+      ['1.6','Complies with applicable regulations'],
+      ['1.7','Applies relevant procedural knowledge'] ] },
+    { code:'M', name:'Workload Management', desc:'Maintains available workload capacity by prioritising and distributing tasks using appropriate resources.', obs:[
+      ['8.1','Exercises self-control in all situations'],
+      ['8.2','Plans, prioritises and schedules tasks effectively'],
+      ['8.3','Manages time efficiently'],
+      ['8.4','Offers and gives assistance'],
+      ['8.5','Delegates tasks'],
+      ['8.6','Seeks and accepts assistance when appropriate'],
+      ['8.7','Monitors, reviews and cross-checks conscientiously'],
+      ['8.8','Verifies tasks completed to the expected outcome'],
+      ['8.9','Manages and recovers from interruptions, distractions and failures'] ] },
+    { code:'S', name:'Situation Awareness and Management of Information', desc:'Perceives, comprehends and manages information and anticipates its effect on the operation.', obs:[
+      ['7.1','Monitors and assesses the aeroplane and its systems'],
+      ['7.2','Monitors and assesses energy state and anticipated flight path'],
+      ['7.3','Monitors and assesses the general environment'],
+      ['7.4','Validates accuracy of information, checks for gross errors'],
+      ['7.5','Aware of people involved and their capacity to perform'],
+      ['7.6','Develops contingency plans against threats and errors'],
+      ['7.7','Responds to indications of reduced situation awareness'] ] },
+    { code:'D', name:'Problem Solving and Decision Making', desc:'Identifies precursors, mitigates problems, and makes decisions.', obs:[
+      ['6.1','Identifies, assesses and manages threats and errors in a timely manner'],
+      ['6.2','Seeks accurate, adequate information from appropriate sources'],
+      ['6.3','Identifies and verifies what and why things have gone wrong'],
+      ['6.4','Perseveres through problems while prioritising safety'],
+      ['6.5','Identifies and considers appropriate options'],
+      ['6.6','Applies appropriate, timely decision-making techniques'],
+      ['6.7','Monitors, reviews and adapts decisions as required'],
+      ['6.8','Adapts where no guidance or procedure exists'],
+      ['6.9','Demonstrates resilience to unexpected events'] ] },
+    { code:'C', name:'Communication', desc:'Communicates through appropriate means in normal and non-normal situations.', obs:[
+      ['2.1','Confirms the recipient is ready and able to receive'],
+      ['2.2','Selects what, when, how and with whom to communicate'],
+      ['2.3','Conveys messages clearly, accurately and concisely'],
+      ['2.4','Confirms recipient understanding of important information'],
+      ['2.5','Listens actively and demonstrates understanding'],
+      ['2.6','Asks relevant and effective questions'],
+      ['2.7','Uses appropriate escalation to resolve deviations'],
+      ['2.8','Uses and interprets non-verbal communication appropriately'],
+      ['2.9','Adheres to standard RT phraseology and procedures'],
+      ['2.10','Reads, interprets and responds to datalink messages in English'] ] },
+    { code:'L', name:'Leadership and Teamwork', desc:'Influences others toward a shared purpose, collaborates to accomplish team goals.', obs:[
+      ['5.1','Encourages team participation and open communication'],
+      ['5.2','Shows initiative and gives direction when required'],
+      ['5.3','Engages others in planning'],
+      ['5.4','Considers inputs from others'],
+      ['5.5','Gives and receives feedback constructively'],
+      ['5.6','Resolves conflicts and disagreements constructively'],
+      ['5.7','Exercises decisive leadership when required'],
+      ['5.8','Accepts responsibility for decisions and actions'],
+      ['5.9','Carries out instructions when directed'],
+      ['5.10','Applies effective intervention strategies'],
+      ['5.11','Manages cultural and language challenges'] ] }
+  ];
+
+  let obFilter = 'ALL';
+
+  function renderObLetters() {
+    const wrap = document.getElementById('obLetters');
+    const letters = ['ALL', ...OB_DATA.map(c => c.code)];
+    wrap.innerHTML = letters.map(l => {
+      const cls = 'ob-letter' + (l === 'ALL' ? ' all' : '') + (obFilter === l ? ' active' : '');
+      return `<button class="${cls}" data-letter="${l}">${l}</button>`;
+    }).join('');
+    wrap.querySelectorAll('.ob-letter').forEach(b => {
+      b.addEventListener('click', () => { obFilter = b.dataset.letter; renderObLetters(); renderObContent(); });
+    });
+  }
+
+  function renderObContent() {
+    const content = document.getElementById('obContent');
+    const comps = obFilter === 'ALL' ? OB_DATA : OB_DATA.filter(c => c.code === obFilter);
+    content.innerHTML = comps.map(c => `
+      <div class="ob-comp">
+        <div class="ob-comp-name"><span class="ob-code">${c.code}</span>${escapeHtml(c.name)}</div>
+        <div class="ob-desc">${escapeHtml(c.desc)}</div>
+        <ul class="ob-list">
+          ${c.obs.map(o => `<li><span class="ob-ref">OB ${o[0]}</span><span>${escapeHtml(o[1])}</span></li>`).join('')}
+        </ul>
+      </div>`).join('');
+  }
+
+  function setupOb() {
+    renderObLetters();
+    renderObContent();
+    const overlay = document.getElementById('obOverlay');
+    document.getElementById('obBtn').addEventListener('click', () => overlay.classList.add('open'));
+    document.getElementById('obClose').addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  }
+
+  function setupTheme() {
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? '' : 'dark');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('sessionMeta').textContent = `${SESSION.code} / ${SESSION.name}`;
+    document.getElementById('pilotName').textContent = PILOT.label;
+    document.title = `${SESSION.code} - ${PILOT.label}`;
+    renderAll();
+    apply(PILOT);
+    const stored = load();
+    if (stored) { apply(stored); document.getElementById('restoreNote').hidden = false; }
+    document.querySelectorAll('.field-textarea').forEach(ta => {
+      autoResize(ta);
+      attachSanitizer(ta);
+      ta.addEventListener('input', () => { autoResize(ta); changed(); });
+    });
+    setupControls();
+    setupCopy();
+    setupReset();
+    setupCopyAll();
+    setupDone();
+    setupTheme();
+    setupOb();
+    setupClearForm();
+    changed();
+    updateProgress();
+  });
+</script>
+</body>
+</html>
