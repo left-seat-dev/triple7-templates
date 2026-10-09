@@ -758,7 +758,7 @@
   .form-sec .pick { margin-left: auto; font-weight: 600; color: var(--text-muted); }
   .form-sec .pick.short { color: var(--grade-1); }
   .field-code.row { min-width: 3.6rem; font-size: 0.72rem; }
-  .code-sel { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.3rem; min-width: 4.4rem; border: 1.5px solid var(--accent); border-radius: 4px; background: var(--accent-soft); color: var(--accent); cursor: pointer; }
+  .code-sel { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.3rem; min-width: 4.4rem; max-width: 5.3rem; text-overflow: clip; border: 1.5px solid var(--accent); border-radius: 4px; background: var(--accent-soft); color: var(--accent); cursor: pointer; }
   .row-sub { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); }
   .row-card .field-name { white-space: normal; overflow: visible; }
   .row-card .field-textarea { min-height: 3.2rem; }
@@ -979,7 +979,7 @@
       <div class="field-header">
         <div class="field-label">
           ${item.pool
-            ? `<select class="code-sel" data-slot="${id}" title="Selectable on the eTags form">${item.pool.map(o => `<option value="${o[0]}"${o[0] === item.code ? ' selected' : ''}>${o[0]}</option>`).join('')}</select>`
+            ? `<select class="code-sel" data-slot="${id}" title="Selectable on the eTags form">${item.pool.map(o => `<option value="${o[0]}"${o[0] === item.code ? ' selected' : ''}>${o[0]}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${escapeHtml(o[1])}</option>`).join('')}</select>`
             : `<span class="field-code row" title="Locked on the eTags form">${escapeHtml(item.code)}</span>`}
           <span class="field-name" id="lab-${id}">${escapeHtml(item.label)}</span>
         </div>
