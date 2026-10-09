@@ -56,6 +56,20 @@ FORMS = {
 
 COMPS = 'khapmsdcl'
 
+# Expected competencies per row (the pad's per-event pre-map), shown dashed on the Reason chips.
+EXPECTED = {
+    'LST-B': {'2.5.2': 'HSAPM', '2.6': 'PSCM', '3.4.0': 'HSAPM', '3.4.8': 'MHS', '3.6.1': 'PCMSDL', '3.6.3': 'HSAPM',
+              '3.6.5': 'PHSC', '3.6.9': 'PH', '3.8.1': 'PCM', '3.8.3.1': 'MHS', '3.8.3.4': 'HS', '3.8.4': 'PA',
+              '4.4': 'PH', '5.5': 'H', '_3.4': 'PMSD'},   # _3.4 = any examiner-choice 3.4.x
+}
+
+
+def expected_for(session, code):
+    e = EXPECTED.get(session, {})
+    if code in e:
+        return e[code]
+    return e.get('_3.4', '') if code.startswith('3.4.') else ''
+
 
 def check(text, where):
     bad = [c for c in (text or '') if ord(c) > 126 or (ord(c) < 32 and c != '\n')]
@@ -84,7 +98,7 @@ def form_for(session, rows):
                 fail(f'fixed rows missing: {missing}')
             items = []
             for c, l in s['fixed']:
-                items.append({'slot': f's{n}', 'code': c, 'label': l}); slot_of[c] = f's{n}'; n += 1
+                items.append({'slot': f's{n}', 'code': c, 'label': l, 'expected': expected_for(session, c)}); slot_of[c] = f's{n}'; n += 1
         else:
             pool = s['pool']
             known.update(c for c, _ in pool)
@@ -99,7 +113,8 @@ def form_for(session, rows):
             labels = dict(pool)
             items = []
             for c in codes:
-                items.append({'slot': f's{n}', 'code': c, 'label': labels[c], 'pool': [list(x) for x in pool]}); slot_of[c] = f's{n}'; n += 1
+                items.append({'slot': f's{n}', 'code': c, 'label': labels[c], 'pool': [list(x) for x in pool],
+                              'expmap': {pc: expected_for(session, pc) for pc, _ in pool}}); slot_of[c] = f's{n}'; n += 1
         sec = {'sec': s['sec'], 'items': items}
         if s.get('pick'):
             sec['pick'] = s['pick']

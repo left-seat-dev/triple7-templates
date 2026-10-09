@@ -766,7 +766,8 @@
   .row-sub-label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
   .reason-chips { display: flex; gap: 0.2rem; flex-wrap: wrap; }
   .reason-chip { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; min-width: 1.6rem; padding: 0.2rem 0; text-align: center; border: 1px solid var(--border); border-radius: 5px; background: var(--card-2); color: var(--text-muted); cursor: pointer; }
-  .reason-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .reason-chip.exp { border-style: dashed; border-color: var(--accent); color: var(--accent); background: var(--card); }
+  .reason-chip.active, .reason-chip.exp.active { background: var(--accent); border-color: var(--accent); border-style: solid; color: #fff; }
   .rep-btn { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; padding: 0.22rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; background: var(--card-2); color: var(--text-muted); cursor: pointer; }
   .rep-btn.on { background: var(--warn); border-color: var(--warn); color: #fff; }
   .grade-btn.na { min-width: 2.1rem; }
@@ -847,7 +848,7 @@
 
   <div class="footer-note">
     <strong>Workflow:</strong><br>
-    1. <strong>LST rows:</strong> one card per eTags row this candidate was tested on. Locked rows show a solid code chip; rows you can change on eTags carry a dropdown, pre-set from the script and your pad choice. Grade every row. Reason chips = the competency letters that drove the grade. Repeats toggles 0/1 (one per item, two per test). A G4 row comment can stay blank; a repeat, a G3 or below, or a G5 carries one line.<br>
+    1. <strong>LST rows:</strong> one card per eTags row this candidate was tested on. Locked rows show a solid code chip; rows you can change on eTags carry a dropdown, pre-set from the script and your pad choice. Grade every row. Reason chips = the competency letters that drove the grade; dashed letters are expected for the exercise, select what was actually seen. Repeats toggles 0/1 (one per item, two per test). Every row carries a comment: ultra-thin at G4, a little substantiation at G3 or G5, kept to the exercise itself (wider evidence goes to PAMS).<br>
     2. <strong>LST RESULT</strong> and <strong>Additional Comments from Trainer</strong>: test-record lines only, no coaching.<br>
     3. <strong>PAMS:</strong> all nine are mandatory in eTags. Grade 1-5 or NA, comment each. Then Overall Comments.<br>
     4. The checklist above the save button lists anything eTags will refuse or a reader would query.<br>
@@ -936,6 +937,15 @@
   const allRows = () => FORM.reduce((a, s) => a.concat(s.items), []);
   // A row is a slot. Locked rows have a fixed code; selectable rows (pool) carry a dropdown.
   function codeOf(it) { const sel = document.querySelector(`.code-sel[data-slot="${it.slot}"]`); return sel ? sel.value : it.code; }
+  function expOf(it) { return it.pool ? ((it.expmap || {})[codeOf(it)] || '') : (it.expected || ''); }
+  function applyExp(it) {
+    const e = expOf(it);
+    document.querySelectorAll(`.reason-chips[data-reason="${it.slot}"] .reason-chip`).forEach(c => {
+      const on = e.indexOf(c.dataset.l) >= 0;
+      c.classList.toggle('exp', on);
+      c.title = on ? 'Expected for this exercise' : '';
+    });
+  }
   function labelOf(it) { const c = codeOf(it); if (!it.pool) return it.label; const e = it.pool.find(x => x[0] === c); return e ? e[1] : c; }
   const wordsOf = s => (s || '').trim() ? s.trim().split(/\s+/).length : 0;
 
@@ -986,7 +996,7 @@
           ${LETTERS.map(l => `<button class="reason-chip" data-l="${l}">${l}</button>`).join('')}
         </div>
       </div>
-      <textarea class="field-textarea" id="row-${id}" placeholder="Comments (blank is fine at G4)"></textarea>
+      <textarea class="field-textarea" id="row-${id}" placeholder="Comments - thin at G4, a little substantiation at G3 / G5"></textarea>
       <div class="field-footer">
         <span class="char-count">0 words</span>
         <span class="status-tag pending">Pending</span>
@@ -1088,6 +1098,7 @@
       const r = (p.rows || {})[id] || {};
       const sel = document.querySelector(`.code-sel[data-slot="${id}"]`);
       if (sel) { sel.value = (r.code && it.pool.some(o => o[0] === r.code)) ? r.code : it.code; document.getElementById('lab-' + id).textContent = labelOf(it); }
+      applyExp(it);
       setRep(id, r.repeats || 0);
       setGrade('row-' + id, r.grade || null);
       setReason(id, r.reason || '');
@@ -1154,8 +1165,7 @@
         reps += r.repeats;
         if (r.grade) graded++;
         if (!r.grade) hard.push(`${r.code}: no grade`);
-        if (r.repeats && !r.text.trim()) hard.push(`${r.code}: repeat awarded, comment empty`);
-        if (r.grade && r.grade !== 4 && !r.text.trim()) hard.push(`${r.code}: G${r.grade} needs a comment`);
+        if (!r.text.trim()) hard.push(`${r.code}: comment empty`);
         if (r.grade && r.grade !== 4 && !r.reason) soft.push(`${r.code}: G${r.grade} with no Reason letters`);
         if (r.grade && r.grade <= 2 && s.result === 'PASS') hard.push(`${r.code}: G${r.grade} against a PASS result`);
       });
@@ -1214,6 +1224,7 @@
     document.querySelectorAll('.code-sel').forEach(sel => sel.addEventListener('change', () => {
       const it = allRows().find(x => x.slot === sel.dataset.slot);
       document.getElementById('lab-' + it.slot).textContent = labelOf(it);
+      applyExp(it);
       changed();
     }));
     document.querySelectorAll('.rep-btn').forEach(b => b.addEventListener('click', () => { setRep(b.dataset.rep, getRep(b.dataset.rep) ? 0 : 1); changed(); }));
