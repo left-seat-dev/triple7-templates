@@ -137,11 +137,11 @@ def main():
                 fail(f'{label} {code}: reason {reason!r}')
             check(r.get('text', ''), f'{label} {code}')
             clean_rows[slot_of[code]] = {'code': code, 'repeats': rp, 'grade': g, 'reason': reason, 'text': r.get('text', '')}
-        if reps > 2:
-            fail(f'{label}: {reps} repeats, test allowance is 2')
         result = p.get('result')
         if result not in (None, 'PASS', 'FAIL', 'INCOMPLETE'):
             fail(f'{label}: result {result!r}')
+        if reps > 2 and result != 'FAIL':
+            fail(f'{label}: {reps} repeats with result {result}, allowance is 2 (a third repeat means FAIL)')
         pams = {}
         for c in COMPS:
             e = p.get('pams', {}).get(c, {})

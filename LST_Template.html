@@ -1168,7 +1168,7 @@
         if (sec.items.length < sec.pick) hard.push(`${sec.sec.split(' (')[0]}: only ${sec.items.length} rows, minimum ${sec.pick}`);
       }
     });
-    if (reps > 2) hard.push(`${reps} repeats awarded, test allowance is 2`);
+    if (reps > 2 && s.result !== 'FAIL') hard.push(`${reps} repeats awarded, allowance is 2: result must be FAIL`);
     if (!s.result) hard.push('LST RESULT not set');
     if (s.result === 'PASS' && Object.values(s.rows).some(r => r.repeats) && !s.trainer.trim()) soft.push('Repeats awarded: Trainer comment usually names them');
     COMPETENCIES.forEach(c => {
